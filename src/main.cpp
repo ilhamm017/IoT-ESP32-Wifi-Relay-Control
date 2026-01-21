@@ -6,7 +6,8 @@
 #include "WiFiStorage.h"
 
 // Konfigurasi Relay
-#define RELAY_PIN 12
+#define RELAY_PIN1 32  // GPIO 32 untuk Relay
+#define RELAY_PIN2 33 // GPIO 33 untuk Relay
 #define RESET_BUTTON_PIN 0  // GPIO 0 = tombol BOOT di board ESP32
 
 // Web Server pada port 80
@@ -15,6 +16,9 @@ WebServer server(80);
 // Variabel untuk menyimpan WiFi credentials
 String ssid = "";
 String password = "";
+String staticIp = "";
+String gateway = "";
+bool useStaticIP = false;
 bool wifiConnected = false;
 
 // Setup WiFi AP untuk konfigurasi
@@ -30,6 +34,7 @@ void setupConfigAP() {
   Serial.println(WiFi.softAPIP());
 
   setupConfigRoutes(server);
+  setupAdditionalRoutes(server, RELAY_PIN1, RELAY_PIN2);  // Add new routes
   server.begin();
 }
 
@@ -46,6 +51,26 @@ void connectToWiFi() {
   Serial.println(ssid);
 
   WiFi.mode(WIFI_STA);
+  
+  // Apply static IP if configured
+  if (useStaticIP && staticIp.length() > 0 && gateway.length() > 0) {
+    IPAddress ip;
+    IPAddress gw;
+    IPAddress subnet(255, 255, 255, 0);
+    
+    if (ip.fromString(staticIp) && gw.fromString(gateway)) {
+      WiFi.config(ip, gw, subnet);
+      Serial.println("Applying static IP configuration:");
+      Serial.print("IP: ");
+      Serial.println(staticIp);
+      Serial.print("Gateway: ");
+      Serial.println(gateway);
+    } else {
+      Serial.println("Invalid static IP configuration, using DHCP");
+      useStaticIP = false;
+    }
+  }
+  
   WiFi.begin(ssid.c_str(), password.c_str());
 
   int attempts = 0;
@@ -61,10 +86,12 @@ void connectToWiFi() {
     Serial.println(WiFi.localIP());
     wifiConnected = true;
 
-    // Setup server routes
-    setupControlRoutes(server, RELAY_PIN);
+    // Setup server routes (both control + config routes accessible)
+    setupControlRoutes(server, RELAY_PIN1, RELAY_PIN2);
+    setupConfigRoutes(server);  // Make config accessible even when connected
+    setupAdditionalRoutes(server, RELAY_PIN1, RELAY_PIN2);
     server.begin();
-    Serial.println("Server dimulai!");
+    Serial.println("Server dimulai! Config tetap dapat diakses di /config");
   } else {
     Serial.println("\nGagal terhubung ke WiFi, setup AP...");
     setupConfigAP();
@@ -76,18 +103,25 @@ void setup() {
   delay(1000);
 
   // Setup Relay
-  pinMode(RELAY_PIN, OUTPUT);
-  digitalWrite(RELAY_PIN, HIGH);  // Relay OFF
+  pinMode(RELAY_PIN1, OUTPUT);
+  digitalWrite(RELAY_PIN1, HIGH);  // Relay OFF
+  pinMode(RELAY_PIN2, OUTPUT);
+  digitalWrite(RELAY_PIN2, HIGH);  // Relay OFF
 
   // Setup Reset Button
   pinMode(RESET_BUTTON_PIN, INPUT_PULLUP);
 
-  Serial.println("\n\n=== ESP32 Relay Control Server ===");
+  Serial.println("\n\n=== ESP32 Relay Control Server v2 ===");
+  Serial.println("Features: WiFi Scan, Static IP, Persistent Config");
   Serial.println("Ketik 'reset' di Serial Monitor untuk reset WiFi credentials");
+  Serial.println("Ketik 'status' untuk lihat current status");
   Serial.println("ATAU tekan tombol BOOT selama 5 detik untuk reset");
 
   // Load WiFi credentials dari EEPROM
   loadWiFiCredentials(ssid, password);
+  
+  // Load Static IP configuration
+  loadStaticIP(staticIp, gateway, useStaticIP);
 
   // Coba koneksi
   connectToWiFi();
