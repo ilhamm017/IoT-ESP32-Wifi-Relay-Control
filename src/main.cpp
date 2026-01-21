@@ -24,7 +24,8 @@ bool wifiConnected = false;
 // Setup WiFi AP untuk konfigurasi
 void setupConfigAP() {
   Serial.println("\nMemulai Access Point untuk konfigurasi...");
-  WiFi.mode(WIFI_AP);
+  // AP+STA supaya scan WiFi bisa jalan saat mode setup
+  WiFi.mode(WIFI_AP_STA);
   WiFi.softAP("ESP32-Setup", "12345678");
 
   Serial.println("Access Point aktif:");

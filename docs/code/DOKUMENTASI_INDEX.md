@@ -1,4 +1,4 @@
-# 📚 Index Dokumentasi - ESP32 WiFi Relay Control
+﻿# 📚 Index Dokumentasi - ESP32 WiFi Relay Control
 
 Ini adalah index lengkap semua dokumentasi untuk project ESP32 WiFi Relay Control System.
 
@@ -48,6 +48,18 @@ Ini adalah index lengkap semua dokumentasi untuk project ESP32 WiFi Relay Contro
 
 ---
 
+### Dokumen Tambahan
+**Untuk:** User yang butuh referensi ringkas  
+**Isi:**
+- **PANDUAN_PENGGUNA.md** - Langkah penggunaan (setup, kontrol, reset)
+- **DOKUMENTASI_ENDPOINT.md** - Daftar endpoint + contoh request
+
+**Mulai dari sini jika:**
+- Ingin panduan penggunaan tanpa detail teknis
+- Butuh referensi endpoint cepat
+
+---
+
 ### 3. **QUICK_START.md** - Panduan Setup Cepat
 **Untuk:** User yang ingin langsung mulai  
 **Isi:**
@@ -69,7 +81,7 @@ Ini adalah index lengkap semua dokumentasi untuk project ESP32 WiFi Relay Contro
 
 ---
 
-### 4. **DOKUMENTASI_TEKNIS.md** - Technical Reference
+### 4. **docs/code/DOKUMENTASI_TEKNIS.md** - Technical Reference
 **Untuk:** Developer & engineer  
 **Isi:**
 1. Analisis Kode Detail (untuk setiap file)
@@ -120,11 +132,17 @@ Saya mau tahu apa project ini?
 Saya ingin setup cepat & mulai kontrol relay?
 └─ Baca: QUICK_START.md (5 menit setup)
 
+Saya butuh panduan penggunaan singkat?
+ÀÄ Baca: PANDUAN_PENGGUNA.md (10 menit)
+
+Saya butuh daftar endpoint cepat?
+ÀÄ Baca: DOKUMENTASI_ENDPOINT.md (10 menit)
+
 Saya ingin pemahaman lengkap cara kerjanya?
 └─ Baca: DOKUMENTASI.md (30 menit)
 
 Saya ingin modify atau develop lebih lanjut?
-└─ Baca: DOKUMENTASI_TEKNIS.md (1 jam)
+└─ Baca: docs/code/DOKUMENTASI_TEKNIS.md (1 jam)
 
 Saya ingin lihat checklist fitur apa saja?
 └─ Baca: FITUR_RINGKASAN.md (10 menit)
@@ -137,9 +155,11 @@ Saya ingin lihat checklist fitur apa saja?
 | Dokumen | Audience | Time | Detail Level | Focus |
 |---------|----------|------|--------------|-------|
 | README.md | Everyone | 5m | Beginner | Overview |
+| PANDUAN_PENGGUNA.md | Users | 10m | Basic | Usage |
+| DOKUMENTASI_ENDPOINT.md | Users & Dev | 10m | Basic | Endpoints |
 | QUICK_START.md | Users | 5m-1h | Basic | Setup & Usage |
 | DOKUMENTASI.md | Users & Dev | 30m | Complete | Everything |
-| DOKUMENTASI_TEKNIS.md | Developers | 1h+ | Advanced | Code & API |
+| docs/code/DOKUMENTASI_TEKNIS.md | Developers | 1h+ | Advanced | Code & API |
 | FITUR_RINGKASAN.md | Everyone | 10m | Summary | Features |
 
 ---
@@ -157,13 +177,13 @@ Saya ingin lihat checklist fitur apa saja?
 3. **DOKUMENTASI.md** - Troubleshooting section
 
 ### 💻 Untuk Development
-1. **DOKUMENTASI_TEKNIS.md** - Code analysis
-2. **DOKUMENTASI_TEKNIS.md** - Function reference
+1. **docs/code/DOKUMENTASI_TEKNIS.md** - Code analysis
+2. **docs/code/DOKUMENTASI_TEKNIS.md** - Function reference
 3. Source code dalam `src/`
 
 ### 📚 Untuk Referensi Lengkap
 1. **DOKUMENTASI.md** - Panduan komprehensif
-2. **DOKUMENTASI_TEKNIS.md** - Technical details
+2. **docs/code/DOKUMENTASI_TEKNIS.md** - Technical details
 3. **FITUR_RINGKASAN.md** - Feature checklist
 
 ---
@@ -221,7 +241,7 @@ Saya ingin lihat checklist fitur apa saja?
 9. Deployment Checklist
 10. FAQ
 
-### DOKUMENTASI_TEKNIS.md Contents
+### docs/code/DOKUMENTASI_TEKNIS.md Contents
 1. Daftar Isi
 2. Analisis Kode Detail
 3. Function Reference (table)
@@ -263,12 +283,12 @@ Saya ingin lihat checklist fitur apa saja?
 
 ### Tables
 - **Semua dokumen:** Fitur, specifications, API reference
-- **DOKUMENTASI_TEKNIS.md:** Function reference, error handling
+- **docs/code/DOKUMENTASI_TEKNIS.md:** Function reference, error handling
 - **DOKUMENTASI.md:** Endpoints API, troubleshooting
 
 ### Code Examples
 - **QUICK_START.md:** Python, Node.js, curl, bash
-- **DOKUMENTASI_TEKNIS.md:** Code snippets C++
+- **docs/code/DOKUMENTASI_TEKNIS.md:** Code snippets C++
 - **README.md:** API examples
 
 ### Hardware Info
@@ -290,7 +310,7 @@ Saya ingin lihat checklist fitur apa saja?
 → QUICK_START.md, API Cheatsheet
 
 ### "Bagaimana struktur EEPROM?"
-→ DOKUMENTASI_TEKNIS.md, Data Structure  
+→ docs/code/DOKUMENTASI_TEKNIS.md, Data Structure  
 → DOKUMENTASI.md, Penyimpanan EEPROM
 
 ### "Bagaimana cara reset WiFi?"
@@ -304,7 +324,7 @@ Saya ingin lihat checklist fitur apa saja?
 → README.md, Troubleshooting
 
 ### "Bagaimana cara develop lebih lanjut?"
-→ DOKUMENTASI_TEKNIS.md, Analisis Kode Detail  
+→ docs/code/DOKUMENTASI_TEKNIS.md, Analisis Kode Detail  
 → FITUR_RINGKASAN.md, Expansion Possibilities  
 → DOKUMENTASI.md, Pengembangan Lebih Lanjut
 
@@ -323,7 +343,7 @@ Saya ingin lihat checklist fitur apa saja?
 3. Bookmark IP address untuk akses cepat
 
 ### 💻 Developer (Modification)
-1. DOKUMENTASI_TEKNIS.md (code reference)
+1. docs/code/DOKUMENTASI_TEKNIS.md (code reference)
 2. FITUR_RINGKASAN.md (expansion ideas)
 3. Source code dalam `src/`
 
@@ -345,7 +365,7 @@ Saya ingin lihat checklist fitur apa saja?
 
 ### Advanced
 → **Baca dalam urutan ini:**
-1. DOKUMENTASI_TEKNIS.md (code analysis)
+1. docs/code/DOKUMENTASI_TEKNIS.md (code analysis)
 2. Source code (`src/`)
 3. FITUR_RINGKASAN.md (expansion ideas)
 
@@ -357,7 +377,7 @@ Dokumentasi yang telah dibuat:
 
 - [x] README.md - Halaman utama project
 - [x] DOKUMENTASI.md - Panduan lengkap (ID)
-- [x] DOKUMENTASI_TEKNIS.md - Technical reference (ID)
+- [x] docs/code/DOKUMENTASI_TEKNIS.md - Technical reference (ID)
 - [x] QUICK_START.md - Quick start guide (ID)
 - [x] FITUR_RINGKASAN.md - Feature summary (ID)
 - [x] DOKUMENTASI_INDEX.md - This file
@@ -410,7 +430,7 @@ Silakan submit pull request atau contact author.
 
 1. **Quick questions?** → QUICK_START.md FAQ
 2. **Setup issues?** → DOKUMENTASI.md Troubleshooting
-3. **Code questions?** → DOKUMENTASI_TEKNIS.md
+3. **Code questions?** → docs/code/DOKUMENTASI_TEKNIS.md
 4. **Feature questions?** → FITUR_RINGKASAN.md
 
 ---
@@ -421,3 +441,4 @@ Silakan submit pull request atau contact author.
 
 **Index Dokumentasi v1.0**  
 **Created: 22 Januari 2026**
+

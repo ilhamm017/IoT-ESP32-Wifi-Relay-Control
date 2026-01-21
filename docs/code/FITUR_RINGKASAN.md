@@ -1,4 +1,4 @@
-# RINGKASAN FITUR - ESP32 WiFi Relay Control
+﻿# RINGKASAN FITUR - ESP32 WiFi Relay Control
 
 ## 📋 Fitur-Fitur Utama
 
@@ -285,7 +285,7 @@ IoT-ESP32-Wifi-Relay-Control/
 │   ├── WiFiStorage.cpp            # EEPROM management
 │   └── WiFiStorage.h              # Header
 ├── DOKUMENTASI.md                 # Full documentation (ID)
-├── DOKUMENTASI_TEKNIS.md          # Technical details (ID)
+├── docs/code/DOKUMENTASI_TEKNIS.md          # Technical details (ID)
 ├── QUICK_START.md                 # Quick start guide (ID)
 ├── FITUR_RINGKASAN.md             # This file
 └── include/, lib/, test/          # Standard PlatformIO folders
@@ -314,3 +314,4 @@ IoT-ESP32-Wifi-Relay-Control/
 **RINGKASAN FITUR v1.0**  
 **Status: Production Ready ✓**  
 **Last Updated: 22 Januari 2026**
+

@@ -1,4 +1,4 @@
-# 🆕 UPDATE FITUR v2 - ESP32 WiFi Relay Control
+﻿# 🆕 UPDATE FITUR v2 - ESP32 WiFi Relay Control
 
 **Date:** 22 Januari 2026  
 **Status:** ✅ Successfully Compiled & Tested  
@@ -404,7 +404,7 @@ Ide untuk future update:
 
 Files yang perlu di-update:
 1. DOKUMENTASI.md - Add fitur baru
-2. DOKUMENTASI_TEKNIS.md - Add API endpoints & code analysis
+2. docs/code/DOKUMENTASI_TEKNIS.md - Add API endpoints & code analysis
 3. QUICK_START.md - Add setup WiFi scan & static IP
 4. FITUR_RINGKASAN.md - Update fitur matrix
 5. README.md - Update fitur list
@@ -417,3 +417,4 @@ Files yang perlu di-update:
 **Ready for:** Testing & Deployment
 
 Next: Update documentation & test all features
+

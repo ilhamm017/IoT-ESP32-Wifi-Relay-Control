@@ -47,6 +47,7 @@ void setupAdditionalRoutes(WebServer& server, int relayPin1, int relayPin2) {
   // Routes tambahan untuk WiFi scan & IP setting
   server.on("/api/scan-wifi", handleScanWiFi);
   server.on("/api/set-static-ip", HTTP_POST, handleSetStaticIP);
+  server.on("/api/set-static-ip", HTTP_GET, handleSetStaticIP);
 }
 
 // Handler untuk halaman konfigurasi (dengan WiFi scan & static IP)
@@ -313,31 +314,37 @@ static void handleScanWiFi() {
 
 // Handler untuk set static IP
 static void handleSetStaticIP() {
-  if (s_server->hasArg("plain")) {
+  String ip = "";
+  String gateway = "";
+
+  if (s_server->hasArg("ip") || s_server->hasArg("gateway")) {
+    ip = s_server->arg("ip");
+    gateway = s_server->arg("gateway");
+  } else if (s_server->hasArg("plain")) {
     String body = s_server->arg("plain");
-    
     // Parse JSON: {"ip":"192.168.1.105","gateway":"192.168.1.1"}
     int ipStart = body.indexOf("\"ip\":\"") + 6;
     int ipEnd = body.indexOf("\"", ipStart);
-    String ip = body.substring(ipStart, ipEnd);
+    ip = body.substring(ipStart, ipEnd);
     
     int gwStart = body.indexOf("\"gateway\":\"") + 11;
     int gwEnd = body.indexOf("\"", gwStart);
-    String gateway = body.substring(gwStart, gwEnd);
-    
-    if (ip.length() > 0 && gateway.length() > 0) {
-      saveStaticIP(ip, gateway, true);
-      
-      String response = "{\"status\":\"ok\",\"message\":\"Static IP saved. Reconnecting...\"}";
-      s_server->send(200, "application/json", response);
-      
-      // Restart to apply new IP
-      delay(1000);
-      ESP.restart();
-    } else {
-      s_server->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Invalid IP or gateway\"}");
-    }
+    gateway = body.substring(gwStart, gwEnd);
   } else {
     s_server->send(400, "application/json", "{\"status\":\"error\",\"message\":\"No data provided\"}");
+    return;
+  }
+
+  if (ip.length() > 0 && gateway.length() > 0) {
+    saveStaticIP(ip, gateway, true);
+    
+    String response = "{\"status\":\"ok\",\"message\":\"Static IP saved. Reconnecting...\"}";
+    s_server->send(200, "application/json", response);
+    
+    // Restart to apply new IP
+    delay(1000);
+    ESP.restart();
+  } else {
+    s_server->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Invalid IP or gateway\"}");
   }
 }

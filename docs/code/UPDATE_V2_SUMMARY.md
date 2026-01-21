@@ -1,4 +1,4 @@
-# ✅ UPDATE v2.0 SELESAI - Summary Lengkap
+﻿# ✅ UPDATE v2.0 SELESAI - Summary Lengkap
 
 **Status:** ✅ Sukses Dikompilasi & Siap Deploy  
 **Waktu:** 22 Januari 2026  
@@ -65,7 +65,7 @@ Flash: [======    ] 60.3% (used 789933 bytes from 1310720 bytes)
 - [x] DOKUMENTASI.md - Fitur baru + API endpoints
 - [x] README.md - Fitur highlights + usage
 - [x] UPDATE_FITUR_V2.md - Penjelasan detail setiap fitur
-- [ ] DOKUMENTASI_TEKNIS.md - Akan diupdate (optional)
+- [ ] docs/code/DOKUMENTASI_TEKNIS.md - Akan diupdate (optional)
 - [ ] QUICK_START.md - Akan diupdate (optional)
 
 **Main docs updated:** 3 file ✅
@@ -335,7 +335,7 @@ Documentation/
 5. Test persistent config
 
 ### Soon (Optional):
-1. Update DOKUMENTASI_TEKNIS.md (API details)
+1. Update docs/code/DOKUMENTASI_TEKNIS.md (API details)
 2. Update QUICK_START.md (new setup steps)
 3. Create CHANGELOG.md
 4. Create examples/ folder dengan sample code
@@ -374,3 +374,4 @@ Documentation/
 **Update Report v2.0**  
 **Compiled: 22 January 2026**  
 **Status: ✅ PRODUCTION READY**
+

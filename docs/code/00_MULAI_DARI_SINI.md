@@ -1,4 +1,4 @@
-# 📋 SUMMARY - ESP32 WiFi Relay Control
+﻿# 📋 SUMMARY - ESP32 WiFi Relay Control
 
 **Project:** IoT WiFi Relay Control System menggunakan ESP32  
 **Status:** ✅ Production Ready  
@@ -84,7 +84,7 @@ pio run -e esp32doit-devkit-v1 -t upload
 - Troubleshooting lengkap
 - **Waktu baca:** 30 menit
 
-### 4. **DOKUMENTASI_TEKNIS.md** - Code Reference
+### 4. **docs/code/DOKUMENTASI_TEKNIS.md** - Code Reference
 - Function analysis
 - EEPROM layout
 - Protocol details
@@ -118,7 +118,7 @@ pio run -e esp32doit-devkit-v1 -t upload
    → Baca `DOKUMENTASI.md` (30 menit)
 
 4. **Ingin develop lebih lanjut?**
-   → Lihat `DOKUMENTASI_TEKNIS.md` (1 jam)
+   → Lihat `docs/code/DOKUMENTASI_TEKNIS.md` (1 jam)
 
 5. **Ingin lihat semua fitur?**
    → Cek `FITUR_RINGKASAN.md` (10 menit)
@@ -231,7 +231,7 @@ IoT-ESP32-Wifi-Relay-Control/
 ├── README.md                        # 🆕 Halaman utama
 ├── QUICK_START.md                   # 🆕 Setup cepat
 ├── DOKUMENTASI.md                   # 🆕 Full guide (ID)
-├── DOKUMENTASI_TEKNIS.md            # 🆕 Technical (ID)
+├── docs/code/DOKUMENTASI_TEKNIS.md            # 🆕 Technical (ID)
 ├── FITUR_RINGKASAN.md               # 🆕 Features (ID)
 ├── DOKUMENTASI_INDEX.md             # 🆕 Navigation (ID)
 └── platformio.ini
@@ -330,7 +330,7 @@ Setelah menggunakan project ini, Anda akan belajar:
 | README.md | 3 | 2,000 | Overview |
 | QUICK_START.md | 4 | 3,000 | Setup |
 | DOKUMENTASI.md | 8 | 6,000 | Complete Guide |
-| DOKUMENTASI_TEKNIS.md | 6 | 4,000 | Code |
+| docs/code/DOKUMENTASI_TEKNIS.md | 6 | 4,000 | Code |
 | FITUR_RINGKASAN.md | 4 | 3,000 | Features |
 | DOKUMENTASI_INDEX.md | 5 | 3,000 | Navigation |
 | **TOTAL** | **30** | **21,000** | **Everything** |
@@ -348,7 +348,7 @@ Setelah menggunakan project ini, Anda akan belajar:
 3. **Explore DOKUMENTASI.md** (30 min)
    └─ Learn all features
 
-4. **Check DOKUMENTASI_TEKNIS.md** (as needed)
+4. **Check docs/code/DOKUMENTASI_TEKNIS.md** (as needed)
    └─ For modifications
 
 5. **Start building!** 🚀
@@ -361,7 +361,7 @@ Setelah menggunakan project ini, Anda akan belajar:
 1. Check **DOKUMENTASI_INDEX.md** untuk find dokumen yang tepat
 2. Search di **DOKUMENTASI.md** untuk detailed info
 3. Lihat **QUICK_START.md** untuk quick examples
-4. Refer ke **DOKUMENTASI_TEKNIS.md** untuk code reference
+4. Refer ke **docs/code/DOKUMENTASI_TEKNIS.md** untuk code reference
 
 ---
 
@@ -386,7 +386,7 @@ Setelah menggunakan project ini, Anda akan belajar:
 
 - **Issues:** Check DOKUMENTASI.md Troubleshooting
 - **Questions:** Refer ke QUICK_START.md FAQ
-- **Development:** See DOKUMENTASI_TEKNIS.md
+- **Development:** See docs/code/DOKUMENTASI_TEKNIS.md
 - **Features:** Check FITUR_RINGKASAN.md
 
 ---
@@ -406,3 +406,4 @@ Setelah menggunakan project ini, Anda akan belajar:
 ---
 
 *Selamat menggunakan dan mengembangkan project IoT Anda! Semoga bermanfaat.* 🚀
+

@@ -37,10 +37,11 @@ Program ini adalah sistem kontrol relay wireless berbasis **ESP32** yang memungk
    - Support untuk custom IP routing
 
 ### 5. **IP Setting via API** ✨ NEW
-   - **Endpoint:** `POST /api/set-static-ip`
+   - **Endpoint:** `POST /api/set-static-ip` atau `GET /api/set-static-ip?ip=...&gateway=...`
    - Ubah static IP tanpa web form
-   - Accept JSON: `{"ip":"192.168.1.105","gateway":"192.168.1.1"}`
-   - Device restart otomatis untuk apply konfigurasi
+   - Accept JSON (POST): `{"ip":"192.168.1.105","gateway":"192.168.1.1"}`
+   - Query (GET): `?ip=192.168.1.105&gateway=192.168.1.1`
+   - Device restart otomatis; koneksi bisa pindah setelah apply
 
 ### 6. **Manajemen WiFi**
    - Koneksi otomatis ke WiFi yang tersimpan saat startup
@@ -130,7 +131,7 @@ Program ini adalah sistem kontrol relay wireless berbasis **ESP32** yang memungk
 | `/config` | GET | Halaman form konfigurasi WiFi (dengan scan & static IP) | HTML |
 | `/api/scan-wifi` | GET | Scan jaringan WiFi yang tersedia | JSON |
 | `/save` | POST | Simpan SSID, password, static IP ke EEPROM | HTML |
-| `/api/set-static-ip` | POST | Set static IP via API endpoint | JSON |
+| `/api/set-static-ip` | GET/POST | Set static IP via API endpoint (query or JSON) | JSON |
 
 **[NEW]** Perbedaan penting: `/config` dan `/save` sekarang accessible **bahkan saat WiFi sudah connected**, memungkinkan user untuk reconfigure tanpa reset!
 
@@ -185,6 +186,18 @@ Program ini adalah sistem kontrol relay wireless berbasis **ESP32** yang memungk
    - 4 tombol: "Saklar 1 ON", "Saklar 1 OFF", "Saklar 2 ON", "Saklar 2 OFF"
    - Status real-time kedua relay (update setiap 1 detik)
 4. Klik tombol untuk mengendalikan relay
+
+### **Set Static IP via API**
+
+- **GET (via URL):**  
+  `http://<IP_ADDRESS>/api/set-static-ip?ip=192.168.1.105&gateway=192.168.1.1`
+- **POST (JSON):**
+  ```
+  curl -X POST http://<IP_ADDRESS>/api/set-static-ip \
+    -H "Content-Type: application/json" \
+    -d "{\"ip\":\"192.168.1.105\",\"gateway\":\"192.168.1.1\"}"
+  ```
+- **Catatan:** device akan restart untuk apply; akses kembali dengan IP baru.
 
 ### **Kontrol via Serial Monitor**
 
