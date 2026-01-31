@@ -8,7 +8,7 @@ Dokumen ini khusus endpoint HTTP. Untuk panduan pengguna, lihat `../../PANDUAN_P
 
 - AP mode: `http://192.168.4.1`
 - STA mode: `http://<IP_ESP32>`
-- **Semua endpoint memakai Basic Auth (default `admin` / `admin123`)**
+- **Endpoint konfigurasi memakai Basic Auth (default `admin` / `admin123`)**
 
 ---
 
@@ -67,6 +67,8 @@ curl -u admin:admin123 -X POST http://<IP_ESP32>/api/set-static-ip \
 | `/2/off` | GET | Relay 2 OFF | `Relay 2 OFF` |
 | `/1/status` | GET | Status relay 1 | `ON` / `OFF` |
 | `/2/status` | GET | Status relay 2 | `ON` / `OFF` |
+
+Catatan: Endpoint kontrol relay di atas **tidak** memakai autentikasi (sesuai requirement: auth hanya untuk konfigurasi).
 
 ---
 

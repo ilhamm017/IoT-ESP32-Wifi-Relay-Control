@@ -304,7 +304,6 @@ static void handleSave() {
 
 // Handler untuk root path (kontrol relay)
 static void handleRoot() {
-  if (!ensureAuth()) return;
   String html = "<html>"
     "<head>"
     "<title>Relay Control</title>"
@@ -346,7 +345,6 @@ static void handleRoot() {
 
 // Handler untuk /on
 static void handleSwitch1On() {
-  if (!ensureAuth()) return;
   digitalWrite(s_relayPin1, LOW);  // Relay 1 ON
   Serial.println("Relay 1 ON");
   s_server->send(200, "text/plain", "Relay 1 ON");
@@ -354,7 +352,6 @@ static void handleSwitch1On() {
 
 // Handler untuk /1/off
 static void handleSwitch1Off() {
-  if (!ensureAuth()) return;
   digitalWrite(s_relayPin1, HIGH);  // Relay 1 OFF
   Serial.println("Relay 1 OFF");
   s_server->send(200, "text/plain", "Relay 1 OFF");
@@ -362,7 +359,6 @@ static void handleSwitch1Off() {
 
 // Handler untuk /2/on
 static void handleSwitch2On() {
-  if (!ensureAuth()) return;
   digitalWrite(s_relayPin2, LOW);  // Relay 2 ON
   Serial.println("Relay 2 ON");
   s_server->send(200, "text/plain", "Relay 2 ON");
@@ -370,7 +366,6 @@ static void handleSwitch2On() {
 
 // Handler untuk /2/off
 static void handleSwitch2Off() {
-  if (!ensureAuth()) return;
   digitalWrite(s_relayPin2, HIGH);  // Relay 2 OFF
   Serial.println("Relay 2 OFF");
   s_server->send(200, "text/plain", "Relay 2 OFF");
@@ -378,14 +373,12 @@ static void handleSwitch2Off() {
 
 // Handler untuk /1/status
 static void handleStatus1() {
-  if (!ensureAuth()) return;
   String status = digitalRead(s_relayPin1) == LOW ? "ON" : "OFF";
   s_server->send(200, "text/plain", status);
 }
 
 // Handler untuk /2/status
 static void handleStatus2() {
-  if (!ensureAuth()) return;
   String status = digitalRead(s_relayPin2) == LOW ? "ON" : "OFF";
   s_server->send(200, "text/plain", status);
 }

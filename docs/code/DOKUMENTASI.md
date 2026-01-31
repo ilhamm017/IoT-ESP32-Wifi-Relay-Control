@@ -16,7 +16,7 @@ Last Updated: 30 Januari 2026
 - Scan WiFi dari web dan auto-fill SSID.
 - Static IP dengan IP/Gateway/Subnet/DNS, fallback ke DHCP jika invalid.
 - API untuk set static IP (GET/POST JSON).
-- Basic Auth untuk semua endpoint (default `admin` / `admin123` - ganti sebelum produksi).
+- Basic Auth untuk endpoint konfigurasi (default `admin` / `admin123` - ganti sebelum produksi).
 - Reset kredensial lewat tombol BOOT 5 detik atau perintah serial `reset`.
 
 ## Arsitektur Singkat
@@ -39,15 +39,20 @@ Last Updated: 30 Januari 2026
 5) Klik **Simpan & Koneksi**; perangkat restart dan bergabung ke WiFi.
 6) Akses `http://<IP_ESP32>/` (login Basic Auth) untuk kontrol relay.
 
-## Endpoint (wajib Basic Auth)
+## Endpoint Konfigurasi (wajib Basic Auth)
 
 | Endpoint | Method | Fungsi |
 |---|---|---|
-| `/` | GET | Halaman kontrol relay |
 | `/config` | GET | Halaman konfigurasi WiFi |
 | `/save` | POST | Simpan SSID/Password/Static IP |
 | `/api/scan-wifi` | GET | Scan SSID terdekat |
 | `/api/set-static-ip` | GET/POST | Set IP/Gateway/Subnet/DNS |
+
+## Endpoint Kontrol Relay (tanpa auth)
+
+| Endpoint | Method | Fungsi |
+|---|---|---|
+| `/` | GET | Halaman kontrol relay |
 | `/1/on` / `/1/off` | GET | Relay 1 ON/OFF |
 | `/2/on` / `/2/off` | GET | Relay 2 ON/OFF |
 | `/1/status` / `/2/status` | GET | Status relay (ON/OFF) |
@@ -61,7 +66,7 @@ curl -u admin:admin123 -X POST http://<IP>/api/set-static-ip \
 
 ## Keamanan
 
-- Basic Auth aktif di semua endpoint; ubah credential di kode sebelum produksi.
+- Basic Auth aktif di endpoint konfigurasi; ubah credential di kode sebelum produksi.
 - Input dibatasi: SSID <= 31 char, password <= 63 char, IP/Gateway/Subnet/DNS <= 15 char.
 
 ## EEPROM Layout v2.1

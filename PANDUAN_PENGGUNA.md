@@ -8,7 +8,8 @@ Dokumen ini fokus ke cara pakai (user guide). Untuk detail kode program, lihat `
 
 - Device menyediakan mode Access Point (AP) untuk setup awal.
 - Setelah terkoneksi, halaman konfigurasi tetap bisa diakses lewat `/config`.
-- Semua endpoint dilindungi **Basic Auth** (default user `admin`, password `admin123`).
+- Konfigurasi WiFi dilindungi **Basic Auth** (default user `admin`, password `admin123`).
+- Endpoint kontrol relay (ON/OFF/status) **tidak** memakai autentikasi.
 - Static IP bisa diaktifkan saat setup atau diubah via endpoint.
 - WiFi scan berjalan otomatis saat AP aktif dan saat halaman config dibuka; koneksi HTTP tetap jalan (AP tidak dimatikan) dan LED indikator onboard akan berkedip selama proses scan. Catatan: saat boot ada scan awal STA-only sehingga AP bisa restart sebentar.
 
@@ -40,13 +41,13 @@ Dokumen ini fokus ke cara pakai (user guide). Untuk detail kode program, lihat `
 
 ---
 
-## Endpoint yang Bisa Diakses (wajib Basic Auth)
+## Endpoint yang Bisa Diakses
 
 **Base URL:**
 - AP mode: `http://192.168.4.1`
 - STA mode: `http://<IP_ESP32>`
 
-### Konfigurasi
+### Konfigurasi (wajib Basic Auth)
 
 - `/config` (GET)  
   Fungsi: halaman konfigurasi WiFi (SSID, password, static IP).  
@@ -123,7 +124,7 @@ Catatan: Setelah static IP disimpan, device akan restart dan IP bisa berubah.
 ## Keamanan & Auth
 
 - Default Basic Auth: `admin` / `admin123`. **Ganti sebelum dipakai di jaringan produksi.**
-- Semua endpoint (termasuk scan WiFi & kontrol relay) membutuhkan Basic Auth.
+- Hanya endpoint konfigurasi yang membutuhkan Basic Auth.
 - Batas panjang input: SSID maks 31 karakter, password maks 63 karakter, field IP maks 15 karakter.
 
 ## Reset WiFi
