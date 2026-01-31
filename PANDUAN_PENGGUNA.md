@@ -8,7 +8,9 @@ Dokumen ini fokus ke cara pakai (user guide). Untuk detail kode program, lihat `
 
 - Device menyediakan mode Access Point (AP) untuk setup awal.
 - Setelah terkoneksi, halaman konfigurasi tetap bisa diakses lewat `/config`.
+- Semua endpoint dilindungi **Basic Auth** (default user `admin`, password `admin123`).
 - Static IP bisa diaktifkan saat setup atau diubah via endpoint.
+- WiFi scan berjalan otomatis saat AP aktif dan saat halaman config dibuka; koneksi HTTP tetap jalan (AP tidak dimatikan) dan LED indikator onboard akan berkedip selama proses scan. Catatan: saat boot ada scan awal STA-only sehingga AP bisa restart sebentar.
 
 ---
 
@@ -16,16 +18,17 @@ Dokumen ini fokus ke cara pakai (user guide). Untuk detail kode program, lihat `
 
 1. Nyalakan ESP32, tunggu AP aktif.
 2. Sambungkan ke WiFi `ESP32-Setup` (password `12345678`).
-3. Buka `http://192.168.4.1/config`.
-4. Pilih SSID dari list atau isi manual, lalu masukkan password.
-5. (Opsional) centang Static IP, isi IP dan gateway.
-6. Klik **Simpan & Koneksi**. Device akan restart.
+3. Buka `http://192.168.4.1/config`, login Basic Auth (admin/admin123).
+4. Daftar SSID otomatis muncul (scan otomatis). Bisa tekan **Scan Ulang** kapan saja.
+5. Pilih SSID dari list atau isi manual, lalu masukkan password.
+6. (Opsional) centang Static IP, isi IP, gateway, subnet, dan DNS (biarkan DNS kosong untuk gunakan gateway).
+7. Klik **Simpan & Koneksi**. Device akan restart.
 
 ---
 
 ## Akses Saat Sudah Terkoneksi
 
-- Buka `http://<IP_ESP32>/config` untuk ganti SSID atau password kapan saja.
+- Buka `http://<IP_ESP32>/config` (login Basic Auth) untuk ganti SSID/password kapan saja.
 - Hal ini tidak perlu reset hardware.
 
 ---
@@ -37,7 +40,7 @@ Dokumen ini fokus ke cara pakai (user guide). Untuk detail kode program, lihat `
 
 ---
 
-## Endpoint yang Bisa Diakses
+## Endpoint yang Bisa Diakses (wajib Basic Auth)
 
 **Base URL:**
 - AP mode: `http://192.168.4.1`
@@ -54,23 +57,23 @@ Dokumen ini fokus ke cara pakai (user guide). Untuk detail kode program, lihat `
   Contoh: gunakan tombol **Simpan & Koneksi** di halaman `/config`.
 
 - `/api/scan-wifi` (GET)  
-  Fungsi: scan SSID yang tersedia.  
+  Fungsi: scan SSID yang tersedia (AP tetap aktif; saat boot ada scan awal STA-only sehingga AP bisa restart sebentar).  
   Contoh:
   ```
   http://<IP_ESP32>/api/scan-wifi
   ```
 
 - `/api/set-static-ip` (GET/POST)  
-  Fungsi: simpan static IP via URL atau JSON.  
+  Fungsi: simpan static IP via URL atau JSON (mendukung `ip`, `gateway`, `subnet`, `dns1`).  
   Contoh GET:
   ```
-  http://<IP_ESP32>/api/set-static-ip?ip=192.168.1.105&gateway=192.168.1.1
+  http://<IP_ESP32>/api/set-static-ip?ip=192.168.1.105&gateway=192.168.1.1&subnet=255.255.255.0&dns1=8.8.8.8
   ```
   Contoh POST:
   ```bash
-  curl -X POST http://<IP_ESP32>/api/set-static-ip \
+  curl -u admin:admin123 -X POST http://<IP_ESP32>/api/set-static-ip \
     -H "Content-Type: application/json" \
-    -d "{\"ip\":\"192.168.1.105\",\"gateway\":\"192.168.1.1\"}"
+    -d "{\"ip\":\"192.168.1.105\",\"gateway\":\"192.168.1.1\",\"subnet\":\"255.255.255.0\",\"dns1\":\"8.8.8.8\"}"
   ```
   Catatan: device akan restart dan IP bisa berubah.
 
@@ -110,12 +113,18 @@ Dokumen ini fokus ke cara pakai (user guide). Untuk detail kode program, lihat `
 
 Ada 2 cara:
 
-1. **Via halaman konfigurasi**: centang "Gunakan Static IP".
+1. **Via halaman konfigurasi**: centang "Gunakan Static IP" dan isi IP/Gateway/Subnet/DNS.
 2. **Via endpoint**: lihat `docs/code/DOKUMENTASI_ENDPOINT.md`.
 
 Catatan: Setelah static IP disimpan, device akan restart dan IP bisa berubah.
 
 ---
+
+## Keamanan & Auth
+
+- Default Basic Auth: `admin` / `admin123`. **Ganti sebelum dipakai di jaringan produksi.**
+- Semua endpoint (termasuk scan WiFi & kontrol relay) membutuhkan Basic Auth.
+- Batas panjang input: SSID maks 31 karakter, password maks 63 karakter, field IP maks 15 karakter.
 
 ## Reset WiFi
 

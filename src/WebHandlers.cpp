@@ -8,6 +8,11 @@
 static WebServer* s_server = nullptr;
 static int s_relayPin1 = -1;
 static int s_relayPin2 = -1;
+static const char* AUTH_USER = "admin";
+static const char* AUTH_PASS = "admin123";
+static const char* AP_SSID   = "ESP32-Setup";
+static const char* AP_PASS   = "12345678";
+static String s_lastScanJson;
 
 static void handleConfig();
 static void handleSave();
@@ -20,6 +25,18 @@ static void handleStatus1();
 static void handleStatus2();
 static void handleScanWiFi();
 static void handleSetStaticIP();
+static bool ensureAuth();
+static String jsonEscape(const String& input);
+static int runWiFiScan(String& jsonOut, bool forceStaOnly);
+static void ledOn();
+static void ledOff();
+static void ledToggle();
+void primeScan(bool forceStaOnly) {
+  if (s_lastScanJson.length() == 0 || forceStaOnly) {
+    String tmp;
+    runWiFiScan(tmp, forceStaOnly);
+  }
+}
 
 void setupConfigRoutes(WebServer& server) {
   s_server = &server;
@@ -50,8 +67,49 @@ void setupAdditionalRoutes(WebServer& server, int relayPin1, int relayPin2) {
   server.on("/api/set-static-ip", HTTP_GET, handleSetStaticIP);
 }
 
+// Helper: Basic Auth untuk semua endpoint sensitif
+static bool ensureAuth() {
+  if (!s_server) return false;
+  if (!s_server->authenticate(AUTH_USER, AUTH_PASS)) {
+    s_server->requestAuthentication();
+    return false;
+  }
+  return true;
+}
+
+// Helper: escape string untuk JSON sederhana
+static String jsonEscape(const String& input) {
+  String out;
+  out.reserve(input.length() + 4);
+  for (unsigned int i = 0; i < input.length(); i++) {
+    char c = input[i];
+    switch (c) {
+      case '\"': out += "\\\""; break;
+      case '\\': out += "\\\\"; break;
+      case '\b': out += "\\b"; break;
+      case '\f': out += "\\f"; break;
+      case '\n': out += "\\n"; break;
+      case '\r': out += "\\r"; break;
+      case '\t': out += "\\t"; break;
+      default:
+        if (static_cast<unsigned char>(c) < 0x20) {
+          // Lewati karakter kontrol lain
+        } else {
+          out += c;
+        }
+    }
+  }
+  return out;
+}
+
 // Handler untuk halaman konfigurasi (dengan WiFi scan & static IP)
 static void handleConfig() {
+  if (!ensureAuth()) return;
+  // Auto scan saat halaman diakses jika belum ada cache
+  if (s_lastScanJson.length() == 0) {
+    String tmp;
+    runWiFiScan(tmp, false);
+  }
   String html = "<html>"
     "<head>"
     "<title>WiFi Setup</title>"
@@ -71,7 +129,7 @@ static void handleConfig() {
     // WiFi Selection
     "<div class='section'>"
     "<h2>1. Pilih Jaringan WiFi</h2>"
-    "<button onclick='scanWiFi()'>Scan Jaringan WiFi</button>"
+    "<button id='scanBtn' onclick='scanWiFi(this)'>Scan Jaringan WiFi</button>"
     "<p class='info'>Atau pilih dari list:</p>"
     "<select id='ssidList'>"
     "<option value=''>-- Tekan Scan untuk list WiFi --</option>"
@@ -93,7 +151,7 @@ static void handleConfig() {
     
     // Static IP (Advanced)
     "<div class='advanced'>"
-    "<h3>⚙️ Konfigurasi IP Static (Optional)</h3>"
+    "<h3>Konfigurasi IP Static (Optional)</h3>"
     "<label>"
     "<input type='checkbox' name='useStatic' id='useStatic' onchange='toggleStaticIP()'>"
     "Gunakan Static IP"
@@ -110,6 +168,16 @@ static void handleConfig() {
     "<input type='text' name='gateway' id='gateway' placeholder='192.168.1.1'>"
     "<p class='info'>Biasanya: 192.168.1.1 atau 192.168.0.1</p>"
     "</div>"
+    "<div>"
+    "<label>Subnet Mask:</label><br>"
+    "<input type='text' name='subnet' id='subnet' placeholder='255.255.255.0'>"
+    "<p class='info'>Contoh: 255.255.255.0</p>"
+    "</div>"
+    "<div>"
+    "<label>DNS (opsional):</label><br>"
+    "<input type='text' name='dns1' id='dns1' placeholder='8.8.8.8'>"
+    "<p class='info'>Kosongkan untuk memakai Gateway sebagai DNS</p>"
+    "</div>"
     "</div>"
     "</div>"
     
@@ -124,10 +192,8 @@ static void handleConfig() {
     "  staticDiv.style.display = checkbox.checked ? 'block' : 'none';"
     "}"
     
-    "function scanWiFi() {"
-    "  var btn = event.target;"
-    "  btn.disabled = true;"
-    "  btn.textContent = 'Scanning...';"
+    "function scanWiFi(btn, silent) {"
+    "  if (btn) { btn.disabled = true; btn.textContent = 'Scanning...'; }"
     "  fetch('/api/scan-wifi')"
     "    .then(r => r.json())"
     "    .then(data => {"
@@ -139,26 +205,34 @@ static void handleConfig() {
     "        opt.text = net.ssid + ' (Signal: ' + net.rssi + ' dBm)';"
     "        select.appendChild(opt);"
     "      });"
-    "      btn.disabled = false;"
-    "      btn.textContent = 'Scan Ulang';"
+    "      if (btn) { btn.disabled = false; btn.textContent = 'Scan Ulang'; }"
     "    })"
     "    .catch(err => {"
-    "      alert('Scan gagal: ' + err);"
-    "      btn.disabled = false;"
-    "      btn.textContent = 'Scan Jaringan WiFi';"
+    "      if (!silent) alert('Scan gagal: ' + err);"
+    "      if (btn) { btn.disabled = false; btn.textContent = 'Scan Jaringan WiFi'; }"
     "    });"
     "}"
     
     "document.getElementById('ssidList').addEventListener('change', function() {"
     "  document.getElementById('ssidInput').value = this.value;"
     "});"
+
+    "window.addEventListener('load', function(){"
+    "  var btn = document.getElementById('scanBtn');"
+    "  scanWiFi(btn, true);"
+    "});"
     
     "document.getElementById('configForm').addEventListener('submit', function(e) {"
     "  var ip = document.getElementById('staticIp').value;"
     "  var gateway = document.getElementById('gateway').value;"
+    "  var subnet = document.getElementById('subnet').value;"
     "  var useStatic = document.getElementById('useStatic').checked;"
     "  if (useStatic && (!ip || !gateway)) {"
     "    alert('Masukkan IP dan Gateway jika menggunakan Static IP');"
+    "    e.preventDefault();"
+    "  }"
+    "  if (useStatic && subnet && subnet.split('.').length !== 4) {"
+    "    alert('Subnet tidak valid');"
     "    e.preventDefault();"
     "  }"
     "});"
@@ -171,19 +245,39 @@ static void handleConfig() {
 
 // Handler untuk menyimpan konfigurasi
 static void handleSave() {
+  if (!ensureAuth()) return;
   if (s_server->hasArg("ssid") && s_server->hasArg("password")) {
     String newSsid = s_server->arg("ssid");
     String newPassword = s_server->arg("password");
     bool useStatic = s_server->hasArg("useStatic");
     String staticIp = s_server->arg("staticIp");
     String gateway = s_server->arg("gateway");
+    String subnet = s_server->arg("subnet");
+    String dns1 = s_server->arg("dns1");
+
+    if (newSsid.length() >= WIFI_SSID_MAX_LEN) {
+      s_server->send(400, "text/plain", "SSID terlalu panjang (maks 31 karakter)");
+      return;
+    }
+    if (newPassword.length() >= WIFI_PASS_MAX_LEN) {
+      s_server->send(400, "text/plain", "Password terlalu panjang (maks 63 karakter)");
+      return;
+    }
+    auto ipTooLong = [](const String& val) {
+      return val.length() >= WIFI_IP_MAX_LEN;
+    };
+    if (ipTooLong(staticIp) || ipTooLong(gateway) || ipTooLong(subnet) || ipTooLong(dns1)) {
+      s_server->send(400, "text/plain", "IP/Gateway/Subnet/DNS terlalu panjang");
+      return;
+    }
 
     // Save WiFi credentials
     saveWiFiCredentials(newSsid, newPassword);
 
     // Save static IP if enabled
     if (useStatic && staticIp.length() > 0 && gateway.length() > 0) {
-      saveStaticIP(staticIp, gateway, true);
+      if (subnet.length() == 0) subnet = "255.255.255.0";
+      saveStaticIP(staticIp, gateway, subnet, dns1, true);
       Serial.println("Static IP configuration saved");
     } else {
       clearStaticIP();
@@ -210,6 +304,7 @@ static void handleSave() {
 
 // Handler untuk root path (kontrol relay)
 static void handleRoot() {
+  if (!ensureAuth()) return;
   String html = "<html>"
     "<head>"
     "<title>Relay Control</title>"
@@ -251,6 +346,7 @@ static void handleRoot() {
 
 // Handler untuk /on
 static void handleSwitch1On() {
+  if (!ensureAuth()) return;
   digitalWrite(s_relayPin1, LOW);  // Relay 1 ON
   Serial.println("Relay 1 ON");
   s_server->send(200, "text/plain", "Relay 1 ON");
@@ -258,6 +354,7 @@ static void handleSwitch1On() {
 
 // Handler untuk /1/off
 static void handleSwitch1Off() {
+  if (!ensureAuth()) return;
   digitalWrite(s_relayPin1, HIGH);  // Relay 1 OFF
   Serial.println("Relay 1 OFF");
   s_server->send(200, "text/plain", "Relay 1 OFF");
@@ -265,6 +362,7 @@ static void handleSwitch1Off() {
 
 // Handler untuk /2/on
 static void handleSwitch2On() {
+  if (!ensureAuth()) return;
   digitalWrite(s_relayPin2, LOW);  // Relay 2 ON
   Serial.println("Relay 2 ON");
   s_server->send(200, "text/plain", "Relay 2 ON");
@@ -272,6 +370,7 @@ static void handleSwitch2On() {
 
 // Handler untuk /2/off
 static void handleSwitch2Off() {
+  if (!ensureAuth()) return;
   digitalWrite(s_relayPin2, HIGH);  // Relay 2 OFF
   Serial.println("Relay 2 OFF");
   s_server->send(200, "text/plain", "Relay 2 OFF");
@@ -279,12 +378,14 @@ static void handleSwitch2Off() {
 
 // Handler untuk /1/status
 static void handleStatus1() {
+  if (!ensureAuth()) return;
   String status = digitalRead(s_relayPin1) == LOW ? "ON" : "OFF";
   s_server->send(200, "text/plain", status);
 }
 
 // Handler untuk /2/status
 static void handleStatus2() {
+  if (!ensureAuth()) return;
   String status = digitalRead(s_relayPin2) == LOW ? "ON" : "OFF";
   s_server->send(200, "text/plain", status);
 }
@@ -293,33 +394,98 @@ static void handleStatus2() {
 
 // Handler untuk scan WiFi network
 static void handleScanWiFi() {
+  if (!ensureAuth()) return;
   Serial.println("Scanning available WiFi networks...");
-  
-  int networks = WiFi.scanNetworks();
-  
-  String json = "{\"networks\":[";
-  
-  for (int i = 0; i < networks; i++) {
-    if (i > 0) json += ",";
-    json += "{\"ssid\":\"" + WiFi.SSID(i) + "\",\"rssi\":" + WiFi.RSSI(i) + "}";
-  }
-  
-  json += "]}";
-  
+
+  String json;
+  int networks = runWiFiScan(json, false);
   s_server->send(200, "application/json", json);
   Serial.print("Found ");
   Serial.print(networks);
   Serial.println(" networks");
 }
 
+// Jalankan scan WiFi dengan mematikan AP sementara agar bisa lintas kanal
+static int runWiFiScan(String& jsonOut, bool forceStaOnly) {
+  wifi_mode_t prevMode = WiFi.getMode();
+  bool apWasOn = (prevMode == WIFI_AP || prevMode == WIFI_AP_STA);
+  // Jika diminta STA only, matikan AP sementara agar bisa lintas kanal penuh
+  if (forceStaOnly && apWasOn) {
+    WiFi.softAPdisconnect(true);
+    WiFi.mode(WIFI_STA);
+  } else if (prevMode == WIFI_AP) {
+    WiFi.mode(WIFI_AP_STA);  // tetap siarkan AP tapi STA aktif
+  }
+
+  // Async scan supaya LED bisa berkedip selama pencarian
+  WiFi.scanDelete();
+  WiFi.scanNetworks(true /* async */, true /* show_hidden */);
+
+  unsigned long lastToggle = millis();
+  ledOn();
+
+  int networks = 0;
+  while (true) {
+    int res = WiFi.scanComplete();
+    if (res >= 0) { networks = res; break; }
+    if (res == WIFI_SCAN_FAILED) { networks = 0; break; }
+    unsigned long now = millis();
+    if (now - lastToggle >= 150) {
+      ledToggle();
+      lastToggle = now;
+    }
+    delay(10);
+  }
+  ledOff();
+
+  String json = "{\"networks\":[";
+  for (int i = 0; i < networks; i++) {
+    if (i > 0) json += ",";
+    json += "{\"ssid\":\"" + jsonEscape(WiFi.SSID(i)) + "\",\"rssi\":" + WiFi.RSSI(i) + "}";
+  }
+  json += "]}";
+
+  // nyalakan kembali AP jika sebelumnya aktif dan dimatikan
+  if (forceStaOnly && apWasOn) {
+    WiFi.mode(WIFI_AP);
+    WiFi.softAP(AP_SSID, AP_PASS);
+    Serial.println("Access Point dinyalakan kembali setelah scan STA-only");
+  } else if (!apWasOn) {
+    WiFi.mode(prevMode);
+  } else if (prevMode == WIFI_AP) {
+    WiFi.mode(WIFI_AP);  // kembali ke AP saja bila sebelumnya AP only
+  } // jika AP_STA, biarkan tetap AP_STA
+
+  s_lastScanJson = json;
+  jsonOut = json;
+  return networks;
+}
+
+static void ledOn() {
+  digitalWrite(STATUS_LED_PIN, LED_ACTIVE_LOW ? LOW : HIGH);
+}
+
+static void ledOff() {
+  digitalWrite(STATUS_LED_PIN, LED_ACTIVE_LOW ? HIGH : LOW);
+}
+
+static void ledToggle() {
+  digitalWrite(STATUS_LED_PIN, !digitalRead(STATUS_LED_PIN));
+}
+
 // Handler untuk set static IP
 static void handleSetStaticIP() {
+  if (!ensureAuth()) return;
   String ip = "";
   String gateway = "";
+  String subnet = "";
+  String dns1 = "";
 
   if (s_server->hasArg("ip") || s_server->hasArg("gateway")) {
     ip = s_server->arg("ip");
     gateway = s_server->arg("gateway");
+    subnet = s_server->arg("subnet");
+    dns1 = s_server->arg("dns1");
   } else if (s_server->hasArg("plain")) {
     String body = s_server->arg("plain");
     // Parse JSON: {"ip":"192.168.1.105","gateway":"192.168.1.1"}
@@ -330,13 +496,34 @@ static void handleSetStaticIP() {
     int gwStart = body.indexOf("\"gateway\":\"") + 11;
     int gwEnd = body.indexOf("\"", gwStart);
     gateway = body.substring(gwStart, gwEnd);
+
+    int subnetStart = body.indexOf("\"subnet\":\"");
+    if (subnetStart != -1) {
+      subnetStart += 10;
+      int subnetEnd = body.indexOf("\"", subnetStart);
+      subnet = body.substring(subnetStart, subnetEnd);
+    }
+
+    int dnsStart = body.indexOf("\"dns1\":\"");
+    if (dnsStart != -1) {
+      dnsStart += 8;
+      int dnsEnd = body.indexOf("\"", dnsStart);
+      dns1 = body.substring(dnsStart, dnsEnd);
+    }
   } else {
     s_server->send(400, "application/json", "{\"status\":\"error\",\"message\":\"No data provided\"}");
     return;
   }
 
+  if (ip.length() >= WIFI_IP_MAX_LEN || gateway.length() >= WIFI_IP_MAX_LEN ||
+      subnet.length() >= WIFI_IP_MAX_LEN || dns1.length() >= WIFI_IP_MAX_LEN) {
+    s_server->send(400, "application/json", "{\"status\":\"error\",\"message\":\"IP/Gateway/Subnet/DNS terlalu panjang\"}");
+    return;
+  }
+
   if (ip.length() > 0 && gateway.length() > 0) {
-    saveStaticIP(ip, gateway, true);
+    if (subnet.length() == 0) subnet = "255.255.255.0";
+    saveStaticIP(ip, gateway, subnet, dns1, true);
     
     String response = "{\"status\":\"ok\",\"message\":\"Static IP saved. Reconnecting...\"}";
     s_server->send(200, "application/json", response);

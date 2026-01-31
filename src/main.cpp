@@ -18,6 +18,8 @@ String ssid = "";
 String password = "";
 String staticIp = "";
 String gateway = "";
+String subnetMask = "255.255.255.0";
+String dns1 = "";
 bool useStaticIP = false;
 bool wifiConnected = false;
 
@@ -33,6 +35,9 @@ void setupConfigAP() {
   Serial.println("Password: 12345678");
   Serial.print("IP: ");
   Serial.println(WiFi.softAPIP());
+
+  // Lakukan scan awal STA-only agar daftar WiFi lengkap sebelum AP dipakai
+  primeScan(true);
 
   setupConfigRoutes(server);
   setupAdditionalRoutes(server, RELAY_PIN1, RELAY_PIN2);  // Add new routes
@@ -58,14 +63,28 @@ void connectToWiFi() {
     IPAddress ip;
     IPAddress gw;
     IPAddress subnet(255, 255, 255, 0);
-    
+    IPAddress dns;
+
     if (ip.fromString(staticIp) && gw.fromString(gateway)) {
-      WiFi.config(ip, gw, subnet);
+      if (subnetMask.length() > 0) {
+        subnet.fromString(subnetMask);
+      }
+      if (dns1.length() > 0) {
+        dns.fromString(dns1);
+      } else {
+        dns = gw;  // fallback DNS
+      }
+
+      WiFi.config(ip, gw, subnet, dns);
       Serial.println("Applying static IP configuration:");
       Serial.print("IP: ");
       Serial.println(staticIp);
       Serial.print("Gateway: ");
       Serial.println(gateway);
+      Serial.print("Subnet: ");
+      Serial.println(subnet.toString());
+      Serial.print("DNS: ");
+      Serial.println(dns.toString());
     } else {
       Serial.println("Invalid static IP configuration, using DHCP");
       useStaticIP = false;
@@ -109,6 +128,10 @@ void setup() {
   pinMode(RELAY_PIN2, OUTPUT);
   digitalWrite(RELAY_PIN2, HIGH);  // Relay OFF
 
+  // Setup LED indikator status (berkedip saat scan)
+  pinMode(STATUS_LED_PIN, OUTPUT);
+  digitalWrite(STATUS_LED_PIN, LED_ACTIVE_LOW ? HIGH : LOW);  // LED off
+
   // Setup Reset Button
   pinMode(RESET_BUTTON_PIN, INPUT_PULLUP);
 
@@ -122,10 +145,11 @@ void setup() {
   loadWiFiCredentials(ssid, password);
   
   // Load Static IP configuration
-  loadStaticIP(staticIp, gateway, useStaticIP);
+  loadStaticIP(staticIp, gateway, subnetMask, dns1, useStaticIP);
 
   // Coba koneksi
   connectToWiFi();
+
 }
 
 void loop() {
