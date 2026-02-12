@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Arduino.h>
 #include <WebServer.h>
 
 #ifndef STATUS_LED_PIN
@@ -11,7 +12,7 @@
 #endif
 
 void setupConfigRoutes(WebServer& server);
-void setupControlRoutes(WebServer& server, int relayPin1, int relayPin2);
-void setupAdditionalRoutes(WebServer& server, int relayPin1, int relayPin2);
+void setupControlRoutes(WebServer& server, const int* relayPins, size_t relayCount);
+void setupAdditionalRoutes(WebServer& server);
 // Lakukan scan awal; jika forceStaOnly true, AP dimatikan sementara supaya scan lintas kanal
 void primeScan(bool forceStaOnly = false);

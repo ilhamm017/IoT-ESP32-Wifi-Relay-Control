@@ -4,6 +4,7 @@
 **Status:** ✅ Successfully Compiled & Tested  
 **Build Size:** 789,933 bytes (60.3% of Flash)  
 **RAM Usage:** 45,200 bytes (13.8%)
+Catatan umum: Default relay saat boot adalah ON (active-low). Ubah di `src/main.cpp` jika ingin default OFF.
 
 ---
 
@@ -190,9 +191,8 @@ static void handleSetStaticIP() {
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/` | GET | Main control page |
-| `/1/on`, `/1/off` | GET | Control relay 1 |
-| `/2/on`, `/2/off` | GET | Control relay 2 |
-| `/1/status`, `/2/status` | GET | Get relay status |
+| `/1..8/on`, `/1..8/off` | GET | Control relay N |
+| `/1..8/status` | GET | Get relay status |
 
 ---
 

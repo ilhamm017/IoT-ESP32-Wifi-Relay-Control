@@ -61,14 +61,13 @@ curl -u admin:admin123 -X POST http://<IP_ESP32>/api/set-static-ip \
 | Endpoint | Method | Deskripsi | Response |
 |---|---|---|---|
 | `/` | GET | Halaman kontrol relay | HTML |
-| `/1/on` | GET | Relay 1 ON | `Relay 1 ON` |
-| `/1/off` | GET | Relay 1 OFF | `Relay 1 OFF` |
-| `/2/on` | GET | Relay 2 ON | `Relay 2 ON` |
-| `/2/off` | GET | Relay 2 OFF | `Relay 2 OFF` |
-| `/1/status` | GET | Status relay 1 | `ON` / `OFF` |
-| `/2/status` | GET | Status relay 2 | `ON` / `OFF` |
+| `/1..8/on` | GET | Relay N ON | `Relay N ON` |
+| `/1..8/off` | GET | Relay N OFF | `Relay N OFF` |
+| `/1..8/status` | GET | Status relay N | `ON` / `OFF` |
 
 Catatan: Endpoint kontrol relay di atas **tidak** memakai autentikasi (sesuai requirement: auth hanya untuk konfigurasi).
+Catatan: N mengikuti `RELAY_COUNT` di `src/main.cpp` (default 8).
+Catatan: Default relay saat boot adalah ON (active-low). Ubah di `src/main.cpp` jika ingin default OFF.
 
 ---
 

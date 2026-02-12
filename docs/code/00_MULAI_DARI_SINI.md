@@ -3,18 +3,19 @@
 **Project:** IoT WiFi Relay Control System menggunakan ESP32  
 **Status:** ✅ Production Ready  
 **Dokumentasi:** Lengkap 6 file (20,000+ kata)  
-**Last Updated:** 22 Januari 2026
+**Last Updated:** 4 Februari 2026
 
 ---
 
 ## 🎯 Apa Itu Project Ini?
 
 Sistem kontrol relay wireless yang memungkinkan Anda untuk:
-- ✅ Mengendalikan **2 relay** via WiFi
+- ✅ Mengendalikan **hingga 8 relay** via WiFi
 - ✅ Mengakses dari **web browser** (desktop/mobile)
 - ✅ Setup WiFi via **Access Point** dengan mudah
 - ✅ Menyimpan settings ke **EEPROM** (persistent)
 - ✅ Monitor status **real-time**
+- ✅ Default relay saat boot: ON (active-low). Ubah di `src/main.cpp` jika ingin default OFF.
 
 **Use Cases:**
 - Smart home automation
@@ -29,7 +30,7 @@ Sistem kontrol relay wireless yang memungkinkan Anda untuk:
 
 | # | Fitur | Status |
 |---|-------|--------|
-| 1 | 2 independent relay control | ✅ |
+| 1 | Hingga 8 independent relay control | ✅ |
 | 2 | Web-based control interface | ✅ |
 | 3 | WiFi configuration via web form | ✅ |
 | 4 | EEPROM persistent storage | ✅ |
@@ -131,9 +132,15 @@ pio run -e esp32doit-devkit-v1 -t upload
 ESP32 Dev Board (Rp 100K)
 ├─ GPIO32 → Relay 1
 ├─ GPIO33 → Relay 2
+├─ GPIO25 → Relay 3
+├─ GPIO26 → Relay 4
+├─ GPIO27 → Relay 5
+├─ GPIO14 → Relay 6
+├─ GPIO16 → Relay 7
+├─ GPIO17 → Relay 8
 └─ WiFi built-in
 
-+ Relay Module 2-channel (Rp 50K)
++ Relay Module 2-8 channel (Rp 50K)
 + Power Supply 5V (Rp 20K)
 + USB Cable untuk programming
 
@@ -142,16 +149,13 @@ Total: ~Rp 170K (~$10)
 
 ---
 
-## 📱 API (7 Endpoints)
+## 📱 API (Endpoint Utama)
 
 ```
 GET  /            → Halaman kontrol
-GET  /1/on        → Nyalakan relay 1
-GET  /1/off       → Matikan relay 1
-GET  /2/on        → Nyalakan relay 2
-GET  /2/off       → Matikan relay 2
-GET  /1/status    → Status relay 1
-GET  /2/status    → Status relay 2
+GET  /1..8/on     → Nyalakan relay N
+GET  /1..8/off    → Matikan relay N
+GET  /1..8/status → Status relay N
 ```
 
 **Contoh:**
@@ -197,7 +201,7 @@ Aksi: Kembali ke AP mode untuk reconfigure
 | **Framework** | Arduino + PlatformIO |
 | **Port** | 80 (HTTP) |
 | **Storage** | 512 bytes EEPROM |
-| **GPIO** | 32, 33 (relay) + 0 (reset) |
+| **GPIO** | 32, 33, 25, 26, 27, 14, 16, 17 (relay) + 0 (reset) |
 | **Serial** | 115200 baud |
 | **Power** | 3.3V GPIO, 5V relay module |
 
@@ -207,11 +211,11 @@ Aksi: Kembali ke AP mode untuk reconfigure
 
 **Current:**
 - ⚠️ HTTP only (no encryption)
-- ⚠️ No authentication
+- ⚠️ Basic Auth hanya untuk konfigurasi; kontrol relay tanpa auth
 - ⚠️ Weak default AP password
 
 **For Production:**
-- [ ] Add Basic Auth
+- [ ] Tambahkan auth untuk kontrol relay (saat ini hanya konfigurasi yang dilindungi)
 - [ ] Use HTTPS if possible
 - [ ] Rate limiting
 - [ ] Change AP password

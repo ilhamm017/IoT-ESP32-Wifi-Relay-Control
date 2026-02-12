@@ -5,9 +5,12 @@
 #include "WebHandlers.h"
 #include "WiFiStorage.h"
 
-// Konfigurasi Relay
-#define RELAY_PIN1 32  // GPIO 32 untuk Relay
-#define RELAY_PIN2 33 // GPIO 33 untuk Relay
+// Konfigurasi Relay (ubah sesuai wiring)
+// Cukup edit list pin di bawah; jumlah relay dihitung otomatis.
+static const int RELAY_PINS[] = {
+  16, 17, 18, 19, 21, 22, 23, 25
+};
+static const size_t RELAY_COUNT = sizeof(RELAY_PINS) / sizeof(RELAY_PINS[0]);
 #define RESET_BUTTON_PIN 0  // GPIO 0 = tombol BOOT di board ESP32
 
 // Web Server pada port 80
@@ -40,7 +43,7 @@ void setupConfigAP() {
   primeScan(true);
 
   setupConfigRoutes(server);
-  setupAdditionalRoutes(server, RELAY_PIN1, RELAY_PIN2);  // Add new routes
+  setupAdditionalRoutes(server);  // Add new routes
   server.begin();
 }
 
@@ -107,9 +110,9 @@ void connectToWiFi() {
     wifiConnected = true;
 
     // Setup server routes (both control + config routes accessible)
-    setupControlRoutes(server, RELAY_PIN1, RELAY_PIN2);
+    setupControlRoutes(server, RELAY_PINS, RELAY_COUNT);
     setupConfigRoutes(server);  // Make config accessible even when connected
-    setupAdditionalRoutes(server, RELAY_PIN1, RELAY_PIN2);
+    setupAdditionalRoutes(server);
     server.begin();
     Serial.println("Server dimulai! Config tetap dapat diakses di /config");
   } else {
@@ -123,10 +126,10 @@ void setup() {
   delay(1000);
 
   // Setup Relay
-  pinMode(RELAY_PIN1, OUTPUT);
-  digitalWrite(RELAY_PIN1, HIGH);  // Relay OFF
-  pinMode(RELAY_PIN2, OUTPUT);
-  digitalWrite(RELAY_PIN2, HIGH);  // Relay OFF
+  for (size_t i = 0; i < RELAY_COUNT; i++) {
+    pinMode(RELAY_PINS[i], OUTPUT);
+    digitalWrite(RELAY_PINS[i], LOW);  // Relay ON (active low)
+  }
 
   // Setup LED indikator status (berkedip saat scan)
   pinMode(STATUS_LED_PIN, OUTPUT);

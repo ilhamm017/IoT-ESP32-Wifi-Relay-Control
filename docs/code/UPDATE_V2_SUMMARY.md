@@ -4,6 +4,7 @@
 **Waktu:** 22 Januari 2026  
 **Build:** SUCCESS (16.41 detik)  
 **Size:** 789,933 bytes (60.3% Flash)  
+Catatan umum: Default relay saat boot adalah ON (active-low). Ubah di `src/main.cpp` jika ingin default OFF.
 
 ---
 
@@ -148,9 +149,8 @@ POST /save                    → Now handles static IP config too
 ### Original Endpoints (unchanged)
 ```
 GET  /                        → Control page
-GET  /1/on, /1/off           → Control relay 1
-GET  /2/on, /2/off           → Control relay 2
-GET  /1/status, /2/status    → Relay status
+GET  /1..8/on, /1..8/off     → Control relay N
+GET  /1..8/status            → Relay status
 ```
 
 ---

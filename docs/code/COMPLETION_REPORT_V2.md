@@ -4,6 +4,7 @@
 **Update Date:** 22 Januari 2026  
 **Status:** ✅ COMPLETE & TESTED  
 **Build Result:** ✅ SUCCESS  
+Catatan umum: Default relay saat boot adalah ON (active-low). Ubah di `src/main.cpp` jika ingin default OFF.
 
 ---
 
@@ -128,11 +129,10 @@ Total Changes:
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/` | GET | Main control page |
-| `/1/on`, `/1/off` | GET | Control relay 1 |
-| `/2/on`, `/2/off` | GET | Control relay 2 |
-| `/1/status`, `/2/status` | GET | Relay status |
+| `/1..8/on`, `/1..8/off` | GET | Control relay N |
+| `/1..8/status` | GET | Relay status |
 
-**Total Endpoints:** 11 (7 original + 4 new/enhanced)
+**Total Endpoints:** 4 config + 3 control patterns (1..8)
 
 ---
 

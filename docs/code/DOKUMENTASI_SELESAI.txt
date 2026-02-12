@@ -3,6 +3,7 @@
 **Tanggal:** 22 Januari 2026  
 **Project:** IoT ESP32 WiFi Relay Control System  
 **Status:** Dokumentasi Lengkap ✅  
+Catatan umum: Default relay saat boot adalah ON (active-low). Ubah di `src/main.cpp` jika ingin default OFF.
 
 ---
 
@@ -270,18 +271,21 @@ reset      → Reset WiFi credentials
 ### API Quick Ref
 ```
 /           → Control page
-/1/on       → Turn relay 1 on
-/1/off      → Turn relay 1 off
-/1/status   → Get relay 1 status
-/2/on       → Turn relay 2 on
-/2/off      → Turn relay 2 off
-/2/status   → Get relay 2 status
+/1..8/on    → Turn relay N on
+/1..8/off   → Turn relay N off
+/1..8/status→ Get relay N status
 ```
 
 ### Hardware Pins
 ```
 GPIO 32     → Relay 1
 GPIO 33     → Relay 2
+GPIO 25     → Relay 3
+GPIO 26     → Relay 4
+GPIO 27     → Relay 5
+GPIO 14     → Relay 6
+GPIO 16     → Relay 7
+GPIO 17     → Relay 8
 GPIO 0      → Reset Button (BOOT)
 Serial      → 115200 baud
 ```

@@ -39,10 +39,10 @@ Di smartphone/laptop:
 ### Langkah 4: Kontrol Relay (1 menit)
 1. Cek Serial Monitor untuk IP address baru (misal: `192.168.1.105`)
 2. Buka browser: `http://192.168.1.105`
-3. Klik tombol untuk kontrol relay:
-   - **Saklar 1 ON/OFF** - Kontrol Relay 1 (GPIO 32)
-   - **Saklar 2 ON/OFF** - Kontrol Relay 2 (GPIO 33)
+3. Klik tombol untuk kontrol relay (jumlah mengikuti `RELAY_COUNT` di `src/main.cpp`, default 8).
+   Contoh pin default: GPIO 32, 33, 25, 26, 27, 14, 16, 17.
 4. Status akan update otomatis setiap 1 detik
+Catatan: Default relay saat boot adalah ON (active-low). Ubah di `src/main.cpp` jika ingin default OFF.
 
 ---
 
@@ -79,7 +79,7 @@ reset
 | Serial Monitor kosong | Cek baud rate = 115200 |
 | WiFi tidak connect | Cek SSID & password, coba reset |
 | Web tidak bisa diakses | Pastikan device di WiFi yang sama |
-| Relay tidak bergerak | Cek koneksi kabel GPIO 32 & 33 |
+| Relay tidak bergerak | Cek koneksi kabel sesuai `RELAY_PINS` di `src/main.cpp` |
 | Access Point tidak muncul | Tunggu 1-2 menit, rescan WiFi |
 
 ---
@@ -98,17 +98,16 @@ http://192.168.1.105/1/on
 # Matikan Relay 1
 http://192.168.1.105/1/off
 
-# Nyalakan Relay 2
-http://192.168.1.105/2/on
-
-# Matikan Relay 2
-http://192.168.1.105/2/off
-
 # Cek status Relay 1
 http://192.168.1.105/1/status
 
-# Cek status Relay 2
-http://192.168.1.105/2/status
+# Relay N (N = 1..8 default)
+http://192.168.1.105/1/on
+http://192.168.1.105/1/off
+http://192.168.1.105/1/status
+
+# Contoh relay 8
+http://192.168.1.105/8/on
 ```
 
 ### Via curl (untuk automation):
@@ -130,10 +129,17 @@ ESP32 (3.3V) ──────→ Relay Module VCC
 ESP32 GND    ──────→ Relay Module GND
 ESP32 GPIO32 ──────→ Relay Module CH1 (Signal)
 ESP32 GPIO33 ──────→ Relay Module CH2 (Signal)
+ESP32 GPIO25 ──────→ Relay Module CH3 (Signal)
+ESP32 GPIO26 ──────→ Relay Module CH4 (Signal)
+ESP32 GPIO27 ──────→ Relay Module CH5 (Signal)
+ESP32 GPIO14 ──────→ Relay Module CH6 (Signal)
+ESP32 GPIO16 ──────→ Relay Module CH7 (Signal)
+ESP32 GPIO17 ──────→ Relay Module CH8 (Signal)
 
 Relay Module COM1 ──→ Perangkat yang ingin dikontrol (fase)
 Relay Module COM2 ──→ Perangkat yang ingin dikontrol (fase)
 ```
+Catatan: Sesuaikan pin di `src/main.cpp` jika wiring berbeda atau jumlah relay tidak 8.
 
 ---
 
@@ -170,12 +176,16 @@ WiFi.config(ip, gateway, subnet);
 ```
 
 ### Custom Relay Names
-Edit di `WebHandlers.cpp` → `handleRoot()`:
+Edit di `src/WebHandlers.cpp` → `handleRoot()` untuk mengubah label tombol. Karena tombol dibuat dinamis, gunakan array nama dan ambil berdasarkan index relay.
 ```cpp
-// Ubah teks button dari:
-"<button class='on' onclick='fetch(\"/1/on\")'>Saklar 1 ON</button>"
-// Menjadi:
-"<button class='on' onclick='fetch(\"/1/on\")'>Lampu Ruang Tamu ON</button>"
+static const char* RELAY_LABELS[] = {
+  "Lampu Ruang Tamu", "Lampu Kamar", "Pompa", "Kipas"
+};
+static const size_t RELAY_LABEL_COUNT = sizeof(RELAY_LABELS) / sizeof(RELAY_LABELS[0]);
+
+// Di dalam loop pembuatan tombol:
+String label = (i < RELAY_LABEL_COUNT) ? String(RELAY_LABELS[i]) : ("Saklar " + idx);
+html += "<button class='on' onclick='fetch(\"/" + idx + "/on\")'>" + label + " ON</button>";
 ```
 
 ### Enable Debug Logging
@@ -240,8 +250,7 @@ controlRelay();
 - [ ] Verify serial monitor output
 - [ ] Setup WiFi via access point
 - [ ] Verify WiFi connection
-- [ ] Test relay 1 ON/OFF
-- [ ] Test relay 2 ON/OFF
+- [ ] Test semua relay yang digunakan (1..`RELAY_COUNT`)
 - [ ] Verify web interface
 - [ ] Check status endpoint responses
 - [ ] Test dari smartphone
@@ -266,4 +275,4 @@ A: Ya, dengan menambahkan endpoint yang trigger dari IFTTT atau similar.
 ---
 
 **Quick Start v1.0**  
-**Created: 22 Januari 2026**
+**Last Updated: 4 Februari 2026**

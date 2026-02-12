@@ -6,8 +6,8 @@
 #include "WiFiStorage.h"
 
 static WebServer* s_server = nullptr;
-static int s_relayPin1 = -1;
-static int s_relayPin2 = -1;
+static const int* s_relayPins = nullptr;
+static size_t s_relayCount = 0;
 static const char* AUTH_USER = "admin";
 static const char* AUTH_PASS = "admin123";
 static const char* AP_SSID   = "ESP32-Setup";
@@ -17,12 +17,9 @@ static String s_lastScanJson;
 static void handleConfig();
 static void handleSave();
 static void handleRoot();
-static void handleSwitch1On();
-static void handleSwitch1Off();
-static void handleSwitch2On();
-static void handleSwitch2Off();
-static void handleStatus1();
-static void handleStatus2();
+static void handleRelayOn(size_t index);
+static void handleRelayOff(size_t index);
+static void handleRelayStatus(size_t index);
 static void handleScanWiFi();
 static void handleSetStaticIP();
 static bool ensureAuth();
@@ -31,6 +28,7 @@ static int runWiFiScan(String& jsonOut, bool forceStaOnly);
 static void ledOn();
 static void ledOff();
 static void ledToggle();
+static bool isRelayIndexValid(size_t index);
 void primeScan(bool forceStaOnly) {
   if (s_lastScanJson.length() == 0 || forceStaOnly) {
     String tmp;
@@ -44,23 +42,22 @@ void setupConfigRoutes(WebServer& server) {
   server.on("/save", handleSave);
 }
 
-void setupControlRoutes(WebServer& server, int relayPin1, int relayPin2) {
+void setupControlRoutes(WebServer& server, const int* relayPins, size_t relayCount) {
   s_server = &server;
-  s_relayPin1 = relayPin1;
-  s_relayPin2 = relayPin2;
+  s_relayPins = relayPins;
+  s_relayCount = relayCount;
   server.on("/", handleRoot);
-  server.on("/1/on", handleSwitch1On);
-  server.on("/1/off", handleSwitch1Off);
-  server.on("/2/on", handleSwitch2On);
-  server.on("/2/off", handleSwitch2Off);
-  server.on("/1/status", handleStatus1);
-  server.on("/2/status", handleStatus2);
+  for (size_t i = 0; i < relayCount; i++) {
+    const size_t index = i;
+    String base = "/" + String(index + 1);
+    server.on(base + "/on", [index]() { handleRelayOn(index); });
+    server.on(base + "/off", [index]() { handleRelayOff(index); });
+    server.on(base + "/status", [index]() { handleRelayStatus(index); });
+  }
 }
 
-void setupAdditionalRoutes(WebServer& server, int relayPin1, int relayPin2) {
+void setupAdditionalRoutes(WebServer& server) {
   s_server = &server;
-  s_relayPin1 = relayPin1;
-  s_relayPin2 = relayPin2;
   // Routes tambahan untuk WiFi scan & IP setting
   server.on("/api/scan-wifi", handleScanWiFi);
   server.on("/api/set-static-ip", HTTP_POST, handleSetStaticIP);
@@ -304,82 +301,98 @@ static void handleSave() {
 
 // Handler untuk root path (kontrol relay)
 static void handleRoot() {
-  String html = "<html>"
+  String html;
+  html.reserve(1800 + (s_relayCount * 220));
+  html = "<html>"
     "<head>"
     "<title>Relay Control</title>"
     "<style>"
-    "body { font-family: Arial; text-align: center; margin-top: 50px; }"
-    "button { padding: 20px 40px; font-size: 24px; margin: 10px; cursor: pointer; }"
-    ".on { background-color: #4CAF50; color: white; }"
-    ".off { background-color: #f44336; color: white; }"
-    ".status { margin-top: 30px; font-size: 20px; }"
+    "body { font-family: Arial; margin: 24px; }"
+    ".container { max-width: 720px; margin: 0 auto; }"
+    "table { width: 100%; border-collapse: collapse; margin-top: 16px; }"
+    "th, td { padding: 8px 10px; border-bottom: 1px solid #ddd; text-align: left; }"
+    "button { padding: 6px 12px; margin-right: 6px; cursor: pointer; }"
+    ".status { font-weight: bold; }"
     "</style>"
     "</head>"
     "<body>"
-    "<h1>Kontrol Relay</h1>"
-    "<button class='on' onclick='fetch(\"/1/on\")'>Saklar 1 ON</button>"
-    "<button class='off' onclick='fetch(\"/1/off\")'>Saklar 1 OFF</button>"
-    "<button class='on' onclick='fetch(\"/2/on\")'>Saklar 2 ON</button>"
-    "<button class='off' onclick='fetch(\"/2/off\")'>Saklar 2 OFF</button>"
-    "<div class='status'>"
-    "<p>Status Saklar 1: <span id='status1'>Loading...</span></p>"
-    "<p>Status Saklar 2: <span id='status2'>Loading...</span></p>"
-    "</div>"
-    "<script>"
-    "function updateStatus() {"
-    "  fetch('/1/status').then(r => r.text()).then(data => {"
-    "    document.getElementById('status1').textContent = data;"
-    "  });"
-    "  fetch('/2/status').then(r => r.text()).then(data => {"
-    "    document.getElementById('status2').textContent = data;"
-    "  });"
-    "}"
-    "updateStatus();"
-    "setInterval(updateStatus, 1000);"
-    "</script>"
-    "</body>"
-    "</html>";
+    "<div class='container'>"
+    "<h1>Kontrol Relay</h1>";
+
+  if (!s_relayPins || s_relayCount == 0) {
+    html += "<p>Tidak ada relay yang terdaftar.</p>";
+  } else {
+    html += "<table>"
+            "<thead><tr><th>Relay</th><th>Kontrol</th><th>Status</th></tr></thead>"
+            "<tbody>";
+    for (size_t i = 0; i < s_relayCount; i++) {
+      String idx = String(i + 1);
+      html += "<tr>";
+      html += "<td>Saklar " + idx + "</td>";
+      html += "<td>";
+      html += "<button onclick='fetch(\"/" + idx + "/on\")'>ON</button>";
+      html += "<button onclick='fetch(\"/" + idx + "/off\")'>OFF</button>";
+      html += "</td>";
+      html += "<td class='status' id='status" + idx + "'>Loading...</td>";
+      html += "</tr>";
+    }
+    html += "</tbody></table>";
+    html += "<script>";
+    html += "function updateStatus() {";
+    for (size_t i = 0; i < s_relayCount; i++) {
+      String idx = String(i + 1);
+      html += "fetch('/" + idx + "/status').then(r => r.text()).then(data => {";
+      html += "document.getElementById('status" + idx + "').textContent = data;});";
+    }
+    html += "}";
+    html += "updateStatus();";
+    html += "setInterval(updateStatus, 1000);";
+    html += "</script>";
+  }
+
+  html += "</div></body>"
+          "</html>";
 
   s_server->send(200, "text/html", html);
 }
 
-// Handler untuk /on
-static void handleSwitch1On() {
-  digitalWrite(s_relayPin1, LOW);  // Relay 1 ON
-  Serial.println("Relay 1 ON");
-  s_server->send(200, "text/plain", "Relay 1 ON");
+static bool isRelayIndexValid(size_t index) {
+  return s_relayPins && index < s_relayCount;
 }
 
-// Handler untuk /1/off
-static void handleSwitch1Off() {
-  digitalWrite(s_relayPin1, HIGH);  // Relay 1 OFF
-  Serial.println("Relay 1 OFF");
-  s_server->send(200, "text/plain", "Relay 1 OFF");
+static void handleRelayOn(size_t index) {
+  if (!isRelayIndexValid(index)) {
+    s_server->send(404, "text/plain", "Relay tidak ditemukan");
+    return;
+  }
+  const int pin = s_relayPins[index];
+  digitalWrite(pin, LOW);  // Relay ON (active low)
+  Serial.print("Relay ");
+  Serial.print(index + 1);
+  Serial.println(" ON");
+  s_server->send(200, "text/plain", "Relay " + String(index + 1) + " ON");
 }
 
-// Handler untuk /2/on
-static void handleSwitch2On() {
-  digitalWrite(s_relayPin2, LOW);  // Relay 2 ON
-  Serial.println("Relay 2 ON");
-  s_server->send(200, "text/plain", "Relay 2 ON");
+static void handleRelayOff(size_t index) {
+  if (!isRelayIndexValid(index)) {
+    s_server->send(404, "text/plain", "Relay tidak ditemukan");
+    return;
+  }
+  const int pin = s_relayPins[index];
+  digitalWrite(pin, HIGH);  // Relay OFF (active low)
+  Serial.print("Relay ");
+  Serial.print(index + 1);
+  Serial.println(" OFF");
+  s_server->send(200, "text/plain", "Relay " + String(index + 1) + " OFF");
 }
 
-// Handler untuk /2/off
-static void handleSwitch2Off() {
-  digitalWrite(s_relayPin2, HIGH);  // Relay 2 OFF
-  Serial.println("Relay 2 OFF");
-  s_server->send(200, "text/plain", "Relay 2 OFF");
-}
-
-// Handler untuk /1/status
-static void handleStatus1() {
-  String status = digitalRead(s_relayPin1) == LOW ? "ON" : "OFF";
-  s_server->send(200, "text/plain", status);
-}
-
-// Handler untuk /2/status
-static void handleStatus2() {
-  String status = digitalRead(s_relayPin2) == LOW ? "ON" : "OFF";
+static void handleRelayStatus(size_t index) {
+  if (!isRelayIndexValid(index)) {
+    s_server->send(404, "text/plain", "Relay tidak ditemukan");
+    return;
+  }
+  const int pin = s_relayPins[index];
+  String status = digitalRead(pin) == LOW ? "ON" : "OFF";
   s_server->send(200, "text/plain", status);
 }
 

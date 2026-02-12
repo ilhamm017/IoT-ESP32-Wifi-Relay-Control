@@ -1,6 +1,7 @@
 ﻿# 📚 Index Dokumentasi - ESP32 WiFi Relay Control
 
 Ini adalah index lengkap semua dokumentasi untuk project ESP32 WiFi Relay Control System.
+Catatan umum: Default relay saat boot adalah ON (active-low). Ubah di `src/main.cpp` jika ingin default OFF.
 
 ---
 

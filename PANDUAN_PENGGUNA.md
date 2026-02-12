@@ -37,7 +37,8 @@ Dokumen ini fokus ke cara pakai (user guide). Untuk detail kode program, lihat `
 ## Kontrol Relay
 
 - Buka `http://<IP_ESP32>/` untuk halaman kontrol.
-- Tersedia tombol ON/OFF untuk relay 1 dan 2.
+- Tersedia tombol ON/OFF untuk semua relay yang dikonfigurasi (default 8). Jumlah relay mengikuti `RELAY_COUNT` di `src/main.cpp`.
+- Default relay saat boot: **ON** (active-low). Ubah di `src/main.cpp` jika ingin default OFF.
 
 ---
 
@@ -84,29 +85,17 @@ Dokumen ini fokus ke cara pakai (user guide). Untuk detail kode program, lihat `
   Fungsi: halaman kontrol relay.  
   Contoh: `http://<IP_ESP32>/`
 
-- `/1/on` (GET)  
-  Fungsi: nyalakan relay 1.  
+- `/N/on` (GET)  
+  Fungsi: nyalakan relay N (N = 1..`RELAY_COUNT`, default 1..8).  
   Contoh: `http://<IP_ESP32>/1/on`
 
-- `/1/off` (GET)  
-  Fungsi: matikan relay 1.  
+- `/N/off` (GET)  
+  Fungsi: matikan relay N (N = 1..`RELAY_COUNT`, default 1..8).  
   Contoh: `http://<IP_ESP32>/1/off`
 
-- `/2/on` (GET)  
-  Fungsi: nyalakan relay 2.  
-  Contoh: `http://<IP_ESP32>/2/on`
-
-- `/2/off` (GET)  
-  Fungsi: matikan relay 2.  
-  Contoh: `http://<IP_ESP32>/2/off`
-
-- `/1/status` (GET)  
-  Fungsi: status relay 1 (`ON` / `OFF`).  
+- `/N/status` (GET)  
+  Fungsi: status relay N (`ON` / `OFF`).  
   Contoh: `http://<IP_ESP32>/1/status`
-
-- `/2/status` (GET)  
-  Fungsi: status relay 2 (`ON` / `OFF`).  
-  Contoh: `http://<IP_ESP32>/2/status`
 
 ---
 

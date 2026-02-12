@@ -3,15 +3,14 @@
 ## 📋 Fitur-Fitur Utama
 
 ### 1️⃣ KONTROL RELAY WIRELESS
-✅ **2 Output Relay** dapat dikontrol via WiFi
-- Relay 1 (GPIO 32) - Output digital HIGH/LOW
-- Relay 2 (GPIO 33) - Output digital HIGH/LOW
+✅ **Hingga 8 Output Relay** dapat dikontrol via WiFi
+- Default pin relay: GPIO 32, 33, 25, 26, 27, 14, 16, 17 (bisa diubah di `src/main.cpp`)
 - Status real-time setiap 1 detik
 - Simple ON/OFF commands
 
 ### 2️⃣ WEB INTERFACE
 ✅ **User-Friendly Dashboard**
-- Halaman kontrol dengan 4 tombol (2 relay × ON/OFF)
+- Halaman kontrol dengan tombol dinamis (default 16 tombol untuk 8 relay)
 - Display status relay yang update otomatis
 - Responsive design (mobile-friendly)
 - Tidak perlu aplikasi, cukup browser
@@ -47,9 +46,8 @@
 ### 7️⃣ HTTP API
 ✅ **RESTful Endpoints**
 - `/` - Halaman kontrol
-- `/1/on`, `/1/off` - Control relay 1
-- `/2/on`, `/2/off` - Control relay 2
-- `/1/status`, `/2/status` - Get relay status
+- `/1..8/on`, `/1..8/off` - Control relay N
+- `/1..8/status` - Get relay status
 - `/config` - WiFi configuration page
 - `/save` - Save credentials
 
@@ -65,7 +63,7 @@
 | **WiFi** | Built-in 2.4GHz 802.11 b/g/n |
 | **Web Server Port** | 80 (HTTP) |
 | **Serial Baud** | 115200 |
-| **GPIO Relay** | 32, 33 |
+| **GPIO Relay** | 32, 33, 25, 26, 27, 14, 16, 17 (default) |
 | **GPIO Reset Button** | 0 (BOOT) |
 | **EEPROM Capacity** | 512 bytes |
 | **Max WiFi Strength** | ~100m indoor |
@@ -92,7 +90,7 @@ Kondisi: Connected ke WiFi
 SSID: [Configured WiFi]
 IP: [Dari DHCP Router]
 Port: 80
-Routes: /, /1/on, /1/off, /2/on, /2/off, /1/status, /2/status
+Routes: /, /1..8/on, /1..8/off, /1..8/status
 Tujuan: Relay control
 ```
 
@@ -159,9 +157,10 @@ Password: max 63 characters
 │                                     │
 │  [Saklar 1 ON]  [Saklar 1 OFF]     │
 │  [Saklar 2 ON]  [Saklar 2 OFF]     │
+│  ... hingga Saklar 8              │
 │                                     │
 │  Status Saklar 1: ON                │
-│  Status Saklar 2: OFF               │
+│  Status Saklar 8: OFF               │
 │                                     │
 │  (Status update setiap 1 detik)    │
 │                                     │
@@ -205,7 +204,7 @@ Server dimulai!
 
 Relay 1 ON
 Relay 1 OFF
-Relay 2 ON
+Relay 8 ON
 ```
 
 ---
@@ -219,7 +218,7 @@ GPIO Output → Relay Coil
 LOW  (0V)   → Relay Energized → Contact Closed → ON
 HIGH (3.3V) → Relay De-energized → Contact Open → OFF
 
-Initial State: HIGH → OFF (safe default)
+Initial State: LOW → ON (default)
 ```
 
 ---
@@ -243,7 +242,7 @@ Initial State: HIGH → OFF (safe default)
 
 | Feature | Difficulty | Time |
 |---------|-----------|------|
-| Add 3rd/4th Relay | Easy | 5 min |
+| Scale relay count (hingga 8) | Easy | 5 min |
 | MQTT Integration | Medium | 1 hour |
 | Authentication (Basic Auth) | Medium | 30 min |
 | HTTPS/TLS | Hard | 2 hours |
@@ -261,7 +260,7 @@ Initial State: HIGH → OFF (safe default)
 ### Mandatory
 - ESP32 Development Board
 - USB Cable (untuk programming)
-- Relay Module (2-channel, GPIO-compatible)
+- Relay Module (2-8 channel, GPIO-compatible)
 - Power Supply (5V minimum untuk relay)
 
 ### Optional
@@ -297,7 +296,7 @@ IoT-ESP32-Wifi-Relay-Control/
 
 - [x] WiFi configuration via web interface
 - [x] WiFi credentials persistence (EEPROM)
-- [x] 2 independent relay control
+- [x] Hingga 8 independent relay control
 - [x] Real-time status display
 - [x] Auto-reconnect logic
 - [x] Reset functionality (button + serial)
@@ -313,5 +312,5 @@ IoT-ESP32-Wifi-Relay-Control/
 
 **RINGKASAN FITUR v1.0**  
 **Status: Production Ready ✓**  
-**Last Updated: 22 Januari 2026**
+**Last Updated: 4 Februari 2026**
 

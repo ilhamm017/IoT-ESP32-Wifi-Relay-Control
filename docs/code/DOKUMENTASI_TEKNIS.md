@@ -57,8 +57,8 @@ void connectToWiFi() {
 void setup() {
   // 1. Initialize Serial (115200 baud)
   // 2. Setup GPIO pins:
-  //    - RELAY_PIN1 (32) sebagai OUTPUT, initial HIGH (OFF)
-  //    - RELAY_PIN2 (33) sebagai OUTPUT, initial HIGH (OFF)
+  //    - RELAY_PINS[] (default: 32, 33, 25, 26, 27, 14, 16, 17)
+  //    - Semua relay di-set OUTPUT, initial LOW (ON)
   //    - RESET_BUTTON_PIN (0) sebagai INPUT_PULLUP
   // 3. Load WiFi credentials dari EEPROM
   // 4. Attempt WiFi connection
@@ -66,7 +66,7 @@ void setup() {
 ```
 **Catatan:** 
 - `delay(1000)` di awal untuk stabilisasi serial
-- Relay initial state HIGH berarti OFF
+- Relay initial state LOW berarti ON
 
 #### Function: loop()
 ```cpp
@@ -88,8 +88,8 @@ void loop() {
 #### Static Variables (Private to module)
 ```cpp
 static WebServer* s_server = nullptr;    // Pointer ke WebServer instance
-static int s_relayPin1 = -1;             // GPIO pin untuk relay 1
-static int s_relayPin2 = -1;             // GPIO pin untuk relay 2
+static const int* s_relayPins = nullptr; // Array pin relay
+static size_t s_relayCount = 0;          // Jumlah relay terdaftar
 ```
 
 #### Function: setupConfigRoutes()
@@ -103,15 +103,12 @@ void setupConfigRoutes(WebServer& server) {
 
 #### Function: setupControlRoutes()
 ```cpp
-void setupControlRoutes(WebServer& server, int relayPin1, int relayPin2) {
+void setupControlRoutes(WebServer& server, const int* relayPins, size_t relayCount) {
   // Register HTTP routes untuk control mode:
   // - GET /           → handleRoot()
-  // - GET /1/on       → handleSwitch1On()
-  // - GET /1/off      → handleSwitch1Off()
-  // - GET /2/on       → handleSwitch2On()
-  // - GET /2/off      → handleSwitch2Off()
-  // - GET /1/status   → handleStatus1()
-  // - GET /2/status   → handleStatus2()
+  // - GET /N/on       → handleRelayOn(index)
+  // - GET /N/off      → handleRelayOff(index)
+  // - GET /N/status   → handleRelayStatus(index)
 }
 ```
 
@@ -150,45 +147,37 @@ void handleSave() {
 void handleRoot() {
   // Return HTML dengan:
   // - Title: "Kontrol Relay"
-  // - 4 buttons: Relay 1 ON/OFF, Relay 2 ON/OFF
-  // - 2 status display: Status Relay 1 & 2
+  // - Tombol dinamis sesuai jumlah relay (default 8)
+  // - Status display untuk semua relay
   // - JavaScript:
-  //   * Fetch /1/status dan /2/status setiap 1 detik
+  //   * Fetch /N/status untuk tiap relay setiap 1 detik
   //   * Update UI status dinamis
 }
 ```
 **Response Type:** `text/html`  
 **Response Code:** `200 OK`
 
-#### Function: handleSwitch1On() & handleSwitch1Off()
+#### Function: handleRelayOn() & handleRelayOff()
 ```cpp
-void handleSwitch1On() {
-  // GPIO32 → LOW (relay active-low)
-  // Print ke serial: "Relay 1 ON"
-  // Return: "Relay 1 ON"
+void handleRelayOn(size_t index) {
+  // Ambil pin dari array s_relayPins[index]
+  // Set LOW (relay active-low)
+  // Print ke serial: "Relay N ON"
+  // Return: "Relay N ON"
 }
 
-void handleSwitch1Off() {
-  // GPIO32 → HIGH (relay inactive)
-  // Print ke serial: "Relay 1 OFF"
-  // Return: "Relay 1 OFF"
+void handleRelayOff(size_t index) {
+  // Ambil pin dari array s_relayPins[index]
+  // Set HIGH (relay inactive)
+  // Print ke serial: "Relay N OFF"
+  // Return: "Relay N OFF"
 }
 ```
 
-#### Function: handleSwitch2On() & handleSwitch2Off()
+#### Function: handleRelayStatus()
 ```cpp
-// Sama seperti switch 1, tapi untuk GPIO33
-```
-
-#### Function: handleStatus1() & handleStatus2()
-```cpp
-void handleStatus1() {
-  // Read GPIO32
-  // Return "ON" jika LOW, "OFF" jika HIGH
-}
-
-void handleStatus2() {
-  // Read GPIO33
+void handleRelayStatus(size_t index) {
+  // Read pin s_relayPins[index]
   // Return "ON" jika LOW, "OFF" jika HIGH
 }
 ```
@@ -266,12 +255,12 @@ void clearWiFiCredentials() {
 | main.cpp | setup() | - | void | Initialize hardware & load configs |
 | main.cpp | loop() | - | void | Main loop: handle requests & button |
 | WebHandlers.cpp | setupConfigRoutes(server) | WebServer& | void | Setup routes: /config, /save |
-| WebHandlers.cpp | setupControlRoutes(server, pin1, pin2) | WebServer&, int, int | void | Setup routes: /, /1/on, /1/off, etc |
+| WebHandlers.cpp | setupControlRoutes(server, relayPins, relayCount) | WebServer&, const int*, size_t | void | Setup routes: /, /N/on, /N/off, /N/status |
 | WebHandlers.cpp | handleConfig() | - | void | Show WiFi config form |
 | WebHandlers.cpp | handleSave() | - | void | Save WiFi credentials |
 | WebHandlers.cpp | handleRoot() | - | void | Show relay control page |
-| WebHandlers.cpp | handleSwitch1/2On/Off() | - | void | Control relay |
-| WebHandlers.cpp | handleStatus1/2() | - | void | Return relay status |
+| WebHandlers.cpp | handleRelayOn/Off(index) | size_t | void | Control relay |
+| WebHandlers.cpp | handleRelayStatus(index) | size_t | void | Return relay status |
 | WiFiStorage.cpp | loadWiFiCredentials(ssid, pw) | String&, String& | void | Load from EEPROM |
 | WiFiStorage.cpp | saveWiFiCredentials(ssid, pw) | const String&, const String& | void | Save to EEPROM |
 | WiFiStorage.cpp | clearWiFiCredentials() | - | void | Erase EEPROM |
@@ -296,13 +285,15 @@ States:
 3. STA_MODE (Connected)
    ├─ Connected to configured WiFi
    ├─ IP: Assigned by DHCP
-   └─ Routes: /, /1/on, /1/off, /2/on, /2/off, /1/status, /2/status
+   └─ Routes: /, /1..8/on, /1..8/off, /1..8/status
 
 4. RETRY_AP_MODE (Connection Failed)
    └─ Same as AP_MODE
 ```
 
 ### HTTP Request/Response Examples
+
+Catatan: endpoint relay bersifat dinamis; ganti N sesuai `RELAY_COUNT` (default 1..8).
 
 #### Request: Configure WiFi
 ```http
@@ -372,7 +363,7 @@ ON
 
 ### Response Codes
 - `200 OK` - Request berhasil
-- Server tidak mengembalikan error codes (e.g., 404, 500) untuk routes yang tidak didaftar
+- `404 Not Found` - Relay index tidak valid atau route tidak terdaftar
 
 ### CORS
 - No CORS headers implemented (same-origin access only)
@@ -450,7 +441,7 @@ if (digitalRead(RESET_BUTTON_PIN) == LOW) {  // Button pressed
 ### Network Performance
 - **HTTP server:** Blocking (handleClient waits untuk complete transaction)
 - **No timeout implemented:** Long connections possible
-- **No authentication:** Any client dapat akses
+- **Auth terbatas:** Basic Auth hanya untuk konfigurasi; kontrol relay tanpa auth
 
 ### Scalability Limitations
 - **Max 1 relay control request:** Tidak support concurrent requests
@@ -464,7 +455,7 @@ if (digitalRead(RESET_BUTTON_PIN) == LOW) {  // Button pressed
 ### Current Implementation
 1. **Default AP Password:** "12345678" (weak, hardcoded)
 2. **No encryption:** HTTP only, no HTTPS
-3. **No authentication:** Anyone on network dapat control relays
+3. **Auth terbatas:** Basic Auth hanya untuk konfigurasi; kontrol relay tanpa auth
 4. **No rate limiting:** Susceptible to brute force atau DoS
 5. **Credentials visible in code:** Password visible di source
 
@@ -479,4 +470,4 @@ if (digitalRead(RESET_BUTTON_PIN) == LOW) {  // Button pressed
 ---
 
 **Dokumentasi Teknis v1.0**  
-**Last Updated: 22 Januari 2026**
+**Last Updated: 4 Februari 2026**
