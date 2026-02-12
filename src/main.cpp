@@ -8,7 +8,7 @@
 // Konfigurasi Relay (ubah sesuai wiring)
 // Cukup edit list pin di bawah; jumlah relay dihitung otomatis.
 static const int RELAY_PINS[] = {
-  16, 17, 18, 19, 21, 22, 23, 25
+  26, 27, 32, 33
 };
 static const size_t RELAY_COUNT = sizeof(RELAY_PINS) / sizeof(RELAY_PINS[0]);
 #define RESET_BUTTON_PIN 0  // GPIO 0 = tombol BOOT di board ESP32
@@ -128,7 +128,7 @@ void setup() {
   // Setup Relay
   for (size_t i = 0; i < RELAY_COUNT; i++) {
     pinMode(RELAY_PINS[i], OUTPUT);
-    digitalWrite(RELAY_PINS[i], LOW);  // Relay ON (active low)
+    digitalWrite(RELAY_PINS[i], HIGH);  // Relay OFF (active low)
   }
 
   // Setup LED indikator status (berkedip saat scan)
